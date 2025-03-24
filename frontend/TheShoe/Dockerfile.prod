@@ -1,0 +1,22 @@
+# Build stage
+FROM node:lts-alpine AS build
+WORKDIR /app
+ENV NODE_ENV=production
+
+# Copy package files and install dependencies
+COPY package.json package-lock.json* ./
+RUN npm ci --silent
+
+# Copy app source
+COPY . .
+
+# Build the app
+RUN npm run build
+
+# Production stage - using nginx to serve static files
+FROM nginx:alpine AS production
+COPY --from=build /app/build /usr/share/nginx/html
+# You may need to add a custom nginx.conf if you have routing requirements
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

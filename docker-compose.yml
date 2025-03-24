@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # Frontend - React
+  frontend:
+    build:
+      context: ./frontend/TheShoe
+      dockerfile: Dockerfile
+    ports:
+      - "9031:9030"
+    volumes:
+      - ./frontend/TheShoe:/usr/src/app
+      - /usr/src/node_modules
+    depends_on:
+      - backend
+    environment:
+      - NODE_ENV=development
+    command: sh -c "ls /usr/src/app"
+
+  # Backend - Fastify
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "9090:9090"
+    volumes:
+      - backend_node_modules:/usr/app/node_modules
+      - ./backend:/usr/app
+    depends_on:
+      - postgres
+      - mongodb
+    environment:
+      - NODE_ENV=development
+      # PostgreSQL connection info
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      # MongoDB connection info with authentication
+      - MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/${MONGO_DB}?authSource=admin
+    # command: sh -c "npm install && NODE_ENV=development npm run dev"
+    # command: sh -c "ls /usr/app"
+
+  # PostgreSQL
+  postgres:
+    image: postgres:latest
+    container_name: "postgres-db"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/postgres:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    restart: unless-stopped
+
+  # MongoDB
+  mongodb:
+    image: mongo:latest
+    container_name: "mongodb-db"
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./database/mongodb:/docker-entrypoint-initdb.d
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DB}
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  mongodb_data:
+  backend_node_modules:

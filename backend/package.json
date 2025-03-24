@@ -1,0 +1,18 @@
+{
+  "name": "theshoe-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node --loader ts-node/esm src/testFastify.ts",
+    "dev": "nodemon --exec node --loader ts-node/esm src/testFastify.ts"
+  },
+  "dependencies": {
+    "fastify": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "nodemon": "^3.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.2"
+  }
+}
