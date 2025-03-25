@@ -1,10 +1,28 @@
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ChevronRight, ChevronDown, Filter, X } from "lucide-react";
+import { ChevronDown, Filter, X } from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger
+} from "@/components/ui/sidebar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Button } from "../ui/button";
 
 const IconPage = () => {
-  const [filtersOpen, setFiltersOpen] = useState(true);
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const filterCategories = [
     {
@@ -191,8 +209,19 @@ const IconPage = () => {
     "Women's Black Metcon Shoes"
   ];
 
-  const toggleFilter = (index) => {
-    // This would toggle the specific filter category in a real implementation
+  const [selectedFilters, setSelectedFilters] = useState<Set<string>>(new Set());
+
+  const toggleFilter = (categoryIndex: number, option: string) => {
+    const filterKey = `${filterCategories[categoryIndex].title}-${option}`;
+    setSelectedFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(filterKey)) {
+        next.delete(filterKey);
+      } else {
+        next.add(filterKey);
+      }
+      return next;
+    });
   };
 
   return (
@@ -208,125 +237,73 @@ const IconPage = () => {
       </div>
 
       {/* Breadcrumbs */}
-      <div className="container mx-auto px-4 py-3 text-sm">
-        <div className="flex items-center gap-2">
-          <a href="#" className="hover:underline">Shoes</a>
-          <span>/</span>
-          <a href="#" className="hover:underline">Metcon</a>
-        </div>
+      <div className="container mx-auto px-4 py-3">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="#">Shoes</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink href="#">Metcon</BreadcrumbLink>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
       </div>
 
       <div className="container mx-auto px-4 mb-12">
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Sidebar for desktop */}
-          <aside className={`hidden md:block w-64 flex-shrink-0 ${filtersOpen ? 'block' : 'hidden'}`}>
-            <div className="sticky top-4">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold">Filters</h2>
-                <button onClick={() => setFiltersOpen(!filtersOpen)}>
-                  {filtersOpen ? <X size={20} /> : <Filter size={20} />}
-                </button>
-              </div>
-
-              {filterCategories.map((category, index) => (
-                <div key={index} className="mb-4 border-b pb-4">
-                  <div 
-                    className="flex justify-between items-center cursor-pointer mb-2" 
-                    onClick={() => toggleFilter(index)}
-                  >
-                    <h3 className="font-semibold">{category.title}</h3>
-                    {category.title === "Collections" ? 
-                      <div className="text-xs bg-gray-200 rounded-full px-2 py-1">(1)</div> :
-                      <ChevronDown size={16} />
-                    }
+          {/* Sidebar using shadcn components */}
+          <div className="sidebar">
+            {/*nếu muốn làm expand thì phải tạo một IconPageSidebar bọc toàn bộ Pgae vào trong SidebarProvider */}
+            <SidebarProvider defaultOpen={true}>
+              <SidebarTrigger />
+              <Sidebar className="w-64 shrink-0 border-r border-gray-200">
+                <SidebarHeader className="px-4 pt-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-xl font-bold">Filters</h2>
+                    <SidebarTrigger />
                   </div>
-                  <div className="space-y-2">
-                    {category.options.map((option, optIndex) => (
-                      <div key={optIndex} className="flex items-center gap-2">
-                        <input 
-                          type="checkbox" 
-                          id={`${category.title}-${option}`} 
-                          className="h-4 w-4"
-                          checked={option === "Metcon"}
-                        />
-                        <label htmlFor={`${category.title}-${option}`} className="text-sm">
-                          {option}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </aside>
+                </SidebarHeader>
 
-          {/* Mobile filter button */}
-          <div className="md:hidden mb-4 flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Metcon Shoes <span className="text-sm font-normal">(15)</span></h1>
-            <button 
-              className="flex items-center gap-2 border rounded-full px-4 py-2"
-              onClick={() => setMobileFiltersOpen(true)}
-            >
-              <Filter size={16} />
-              <span>Filters</span>
-            </button>
-          </div>
-
-          {/* Mobile filters drawer */}
-          {mobileFiltersOpen && (
-            <div className="fixed inset-0 z-50 overflow-hidden">
-              <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setMobileFiltersOpen(false)}></div>
-              <div className="absolute inset-y-0 right-0 max-w-full flex">
-                <div className="relative w-screen max-w-md">
-                  <div className="h-full flex flex-col bg-white shadow-xl overflow-y-auto">
-                    <div className="flex justify-between items-center p-4 border-b">
-                      <h2 className="text-lg font-bold">Filters</h2>
-                      <button onClick={() => setMobileFiltersOpen(false)}>
-                        <X size={24} />
-                      </button>
-                    </div>
-                    <div className="p-4">
-                      {/* Duplicate of the desktop filters */}
-                      {filterCategories.map((category, index) => (
-                        <div key={index} className="mb-4 border-b pb-4">
-                          <div 
-                            className="flex justify-between items-center cursor-pointer mb-2" 
-                            onClick={() => toggleFilter(index)}
-                          >
-                            <h3 className="font-semibold">{category.title}</h3>
-                            {category.title === "Collections" ? 
-                              <div className="text-xs bg-gray-200 rounded-full px-2 py-1">(1)</div> :
-                              <ChevronDown size={16} />
-                            }
-                          </div>
-                          <div className="space-y-2">
-                            {category.options.map((option, optIndex) => (
-                              <div key={optIndex} className="flex items-center gap-2">
-                                <input 
-                                  type="checkbox" 
-                                  id={`mobile-${category.title}-${option}`} 
+                <SidebarContent>
+                  {filterCategories.map((category, index) => (
+                    <SidebarGroup key={index} className="mb-2 border-b pb-4">
+                      <SidebarGroupLabel className="font-semibold">
+                        <div className="flex justify-between items-center w-full">
+                          <span>{category.title}</span>
+                          {category.title === "Collections" ?
+                            <div className="text-xs bg-gray-200 rounded-full px-2 py-1">(1)</div> :
+                            <ChevronDown size={16} />
+                          }
+                        </div>
+                      </SidebarGroupLabel>
+                      <SidebarGroupContent>
+                        <SidebarMenu>
+                          {category.options.map((option, optIndex) => (
+                            <SidebarMenuItem key={optIndex}>
+                              <SidebarMenuButton className="flex items-center gap-2 justify-start">
+                                <input
+                                  type="checkbox"
+                                  id={`${category.title}-${option}`}
                                   className="h-4 w-4"
-                                  checked={option === "Metcon"}
+                                  checked={selectedFilters.has(`${category.title}-${option}`)}
+                                  onChange={() => toggleFilter(index, option)}
                                 />
-                                <label htmlFor={`mobile-${category.title}-${option}`} className="text-sm">
+                                <label htmlFor={`${category.title}-${option}`} className="text-sm">
                                   {option}
                                 </label>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="p-4 border-t mt-auto">
-                      <Button className="w-full" onClick={() => setMobileFiltersOpen(false)}>
-                        Apply Filters
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          ))}
+                        </SidebarMenu>
+                      </SidebarGroupContent>
+                    </SidebarGroup>
+                  ))}
+                </SidebarContent>
+              </Sidebar>
+            </SidebarProvider>
+          </div>
 
           {/* Main content */}
           <div className="flex-1">
@@ -334,7 +311,10 @@ const IconPage = () => {
             <div className="hidden md:flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold">Metcon Shoes <span className="text-sm font-normal">(15)</span></h1>
               <div className="relative">
-                <select className="appearance-none bg-transparent border rounded-md px-4 py-2 pr-8 cursor-pointer">
+                <select
+                  className="appearance-none bg-transparent border rounded-md px-4 py-2 pr-8 cursor-pointer"
+                  aria-label="Sort products"
+                >
                   <option>Sort By</option>
                   <option>Featured</option>
                   <option>Newest</option>
@@ -355,11 +335,25 @@ const IconPage = () => {
                         {product.tag}
                       </div>
                     )}
-                    <img
-                      src={product.image}
-                      alt={product.title}
-                      className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
+                    <div className="aspect-square w-full h-full overflow-hidden bg-gray-100 rounded-lg p-4">
+                      <img
+                        src={product.image}
+                        alt={product.title}
+                        className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                        loading="lazy"
+                        width={600}
+                        height={600}
+                        onError={(e) => {
+                          console.error('Image failed to load:', product.image);
+                          e.currentTarget.src = product.tag === 'Customise'
+                            ? 'https://static.nike.com/a/images/t_default/f_auto/6ddf8be1-5e91-4e68-9a1a-2b18a4d9e350/image.png'
+                            : 'https://static.nike.com/a/images/t_default/f_auto/b7d9211c-0e66-4a61-b2cf-4eb1e6d22d1b/image.png';
+                          e.currentTarget.classList.add('object-cover');
+                          e.currentTarget.classList.remove('object-contain');
+                          e.currentTarget.parentElement?.classList.add('bg-red-50');
+                        }}
+                      />
+                    </div>
                     {product.tag === "Customise" && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300">
                         <div className="bg-white py-1 px-3 rounded opacity-0 group-hover:opacity-100 transition-all duration-300">
@@ -393,9 +387,9 @@ const IconPage = () => {
               <h2 className="text-xl font-bold mb-4">Related Categories</h2>
               <div className="flex flex-wrap gap-3">
                 {relatedCategories.map((category, index) => (
-                  <a 
-                    key={index} 
-                    href="#" 
+                  <a
+                    key={index}
+                    href="#"
                     className="text-sm border border-gray-300 hover:border-black px-3 py-1 rounded-full transition-colors"
                   >
                     {category}
