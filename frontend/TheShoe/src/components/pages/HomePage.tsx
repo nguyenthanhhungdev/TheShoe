@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 
-const HomePage: React.FC = () => {
+const HomePage= () => {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
