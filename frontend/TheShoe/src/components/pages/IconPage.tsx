@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ChevronDown, Filter, X } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -22,7 +22,12 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "../ui/button";
 
-const IconPage = () => {
+interface IconPageProps{
+  IconName: string,
+
+}
+
+const IconPage = ({IconName}: IconPageProps) => {
 
   const filterCategories = [
     {
@@ -256,7 +261,7 @@ const IconPage = () => {
           {/* Sidebar using shadcn components */}
           <div className="sidebar">
             {/*nếu muốn làm expand thì phải tạo một IconPageSidebar bọc toàn bộ Pgae vào trong SidebarProvider */}
-            <SidebarProvider defaultOpen={true}>
+            <SidebarProvider>
               <SidebarTrigger />
               <Sidebar className="w-64 shrink-0 border-r border-gray-200">
                 <SidebarHeader className="px-4 pt-4">
@@ -309,7 +314,7 @@ const IconPage = () => {
           <div className="flex-1">
             {/* Desktop page title and sort */}
             <div className="hidden md:flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold">Metcon Shoes <span className="text-sm font-normal">(15)</span></h1>
+              <h1 className="text-2xl font-bold">{IconName} <span className="text-sm font-normal">(15)</span></h1>
               <div className="relative">
                 <select
                   className="appearance-none bg-transparent border rounded-md px-4 py-2 pr-8 cursor-pointer"
