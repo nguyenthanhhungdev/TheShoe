@@ -1,0 +1,231 @@
+= Software Requirement Specification (SRS) for Shoe E-commerce Website
+:sectnums:
+:toc:
+
+== Introduction
+
+=== Purpose
+Mục đích của tài liệu này là xác định các yêu cầu chức năng và phi chức năng của hệ thống website bán giày trực tuyến. Hệ thống sẽ cung cấp một nền tảng để khách hàng có thể duyệt, tìm kiếm, mua giày, quản lý đơn hàng và thanh toán trực tuyến.
+
+=== Scope
+Website bán giày trực tuyến sẽ hỗ trợ các chức năng như:
+
+==== Người dùng
+
+* Duyệt danh mục sản phẩm
+
+* Hiễn thị chi tiết sản phầm
+
+* Tìm kiếm giày theo tên, loại, thương hiệu, giá cả, kích thước
+
+* Đặt hàng và thanh toán trực tuyến (khi đã đăng ký tài khoản)
+
+* Áp dụng các chương trình khuyến mãi, mã giảm giá khi mua hàng
+
+* Thêm sản phẩm vào giỏ hàng
+
+* Đăng ký wishlist(Đăng ký nhận thông báo về sản phẩm mới)
+
+* Khách hàng xem lại các đơn hàng đã mua, đã hủy, đang giao, chờ xác nhận
+
+* Phản hồi, đánh giá sản phẩm
+
+* Nhắn tin với quản trị viên
+
+* Có thể mua hàng với tư cách khách vãng lai
+
+==== Shipper
+
+Xác nhận đã giao hàng thành công
+
+==== Quản trị viên
+
+===== Quản lý tài khoản người dùng
+
+* Tạo tài khoản shipper
+
+* Có khả năng phân quyền cho các tài khoản linh động
+
+* Mỗi quyền có các chức năng được phân chia rõ ràng
+
+===== Quản lý sản phẩm 
+
+* Quản trị viên có thể thêm, sửa, xóa sản phẩm và xử lý sản phẩm
+* Quản trị viên có thể thêm, sửa, xóa danh mục sản phẩm
+
+===== Quản lí đơn hàng
+
+* xem các đơn hàng trong một khoảng thời gian/ xem chi tiết một đơn hàng
+
+* đánh dấu đơn hàng: chưa xử lý (khách hàng mới đặt) và đã xử lý
+
+===== Thống kê
+
+* Thống kê tình hình kinh doanh trong một khoảng thời gian của các sản phẩm thuộc một loại / tất cả sản phẩm.
+
+* Thống kế sản phẩm bán chạy theo khoảng thời gian
+
+===== Quản lý khuyến mãi
+
+* Tạo, sửa, xóa chương trình khuyến mãi, mã giảm giá
+
+* Dashboard theo dõi: Phát triển giao diện quản trị cho phép admin xem báo cáo hiệu quả của từng chương trình khuyến mãi, bao gồm số lượng đơn hàng tạo ra, doanh thu tăng thêm, số lượt sử dụng và phản hồi của khách hàng.
+
+===== Phản hồi khách hàng
+
+* Xem, xử lý phản hồi từ khách hàng
+
+=== Definitions, Acronyms, and Abbreviations
+
+SRS (Software Requirement Specification): Tài liệu đặc tả yêu cầu phần mềm
+
+UI (User Interface): Giao diện người dùng
+
+UX (User Experience): Trải nghiệm người dùng
+
+CMS (Content Management System): Hệ thống quản lý nội dung
+
+API (Application Programming Interface): Giao diện lập trình ứng dụng
+
+*Sản phẩm:* Giày các loại, bao gồm thể thao, casual.
+
+*Người dùng:* Khách hàng sử dụng website để mua hàng.
+
+*Quản trị viên:* Người quản lý sản phẩm, đơn hàng trên hệ thống.
+
+*Shipper:* Người giao hàng, xác nhận đơn hàng giao thành công.
+
+*Đơn hàng:* Giao dịch mua hàng từ người dùng.
+
+=== References
+
+PCI DSS - Tiêu chuẩn bảo mật thanh toán trực tuyến.
+
+W3C Web Accessibility Guidelines - Tiêu chuẩn truy cập web.
+
+REST API Design Best Practices
+
+OWASP Top 10 Security Guidelines
+
+=== Overall Document
+
+Tài liệu bao gồm mô tả tổng quan hệ thống, các yêu cầu chức năng và phi chức năng, các use case chính, cùng với giới hạn và ràng buộc của hệ thống.
+
+== Overall Description
+
+=== Systems View
+
+Website là một hệ thống thương mại điện tử độc lập.
+
+Kiến trúc hệ thống theo mô hình **MVC** với backend REST API **Django**.
+
+Dữ liệu được lưu trữ trong **MySQL**.
+
+Hỗ trợ tích hợp với hệ thống thanh toán bên thứ ba như **VNPay**, **Stripe**.
+
+Xác thực người dùng bằng **Clerk**
+
+Gửi email bằng **Resend**
+
+=== User Characteristics
+
+Khách hàng: Người dùng có thể đăng nhập, đăng ký tài khoản mới, duyệt sản phẩm, đặt hàng, tạo giỏ hàng, đăng ký wishlist và thanh toán trực tuyến.
+
+Quản trị viên: Người có quyền đăng nhập; tạo tài khoản; phân quyền; quản lý sản phẩm; đơn hàng; tài khoản khách hàng, shipper; kiểm soát hệ thống; Xem thông kê.
+
+Shipper: Người xác nhận giao hàng thành công cho khách hàng.
+
+=== Constraints
+
+Website phải hoạt động trên các trình duyệt phổ biến (Chrome, Firefox, Safari, Edge)
+
+Phải tuân thủ các quy định bảo mật dữ liệu khách hàng
+
+Hệ thống thanh toán phải hỗ trợ các phương thức phổ biến như thẻ tín dụng, ví điện tử.
+
+=== Assumption and Dependency
+
+Người dùng có kết nối internet.
+
+Phụ thuộc vào cổng thanh toán bên thứ ba.
+
+Tính năng đăng nhập phụ thuộc vào hệ thống thứ ba: Clerk
+
+Tính năng thanh toán phụ thuộc vào hệ thống thứ ba: Stripe
+
+Tính năng gửi email phụ thuộc vào hệ thống thứ ba: Resend
+
+== Specific Requirements
+
+=== Functional Requirements
+
+[cols="3*", options="header"]
+|===
+| ID | Tên yêu cầu | Mô tả
+| FR-001 | Đăng ký người dùng | Người dùng có thể đăng ký tài khoản bằng email, số điện thoại, tài khoản google; Sử dụng Clerk.
+| FR-002 | Đăng nhập | Hỗ trợ đăng nhập bằng mật khẩu và tài khoản google.
+| FR-003 | Tìm kiếm sản phẩm | Người dùng có thể tìm kiếm sản phẩm theo tên, danh mục, loại, thương hiệu, giá cả, kích thước.
+| FR-004 | Giỏ hàng | Người dùng có thể thêm/xóa sản phẩm vào giỏ hàng.
+| FR-005 | Wishlist | Người dùng có thể đăng ký nhận thông báo về các sản phẩm chuẩn bị về; Dùng Resend để gửi email thông báo
+| FR-006 | Thanh toán | Hỗ trợ thanh toán bằng thẻ tín dụng, ví điện tử, tiền mặt; Dùng Stripe để hổ trợ thanh toán online.
+| FR-007 | Quản lý đơn hàng | Người dùng có thể kiểm tra trạng thái đơn hàng, các đơn hàng đã mua, đã hủy, đã giao.
+| FR-008 | Quản trị sản phẩm | Admin có thể thêm, sửa, xóa sản phẩm.
+| FR-009 | Quản lý người dùng | Admin có thể tạo các tài khoản cho shipper.
+| FR-010 | Quản lý quyền người dùng | Admin có cấp quyền các tài khoản của người dùng.
+| FR-011 | Thống kê tình hình kinh doanh trong một khoảng thời gian của các sản phẩm thuộc một loại  | Admin xem biểu đồ lợi nhuận của một loại giày.
+| FR-012 | Thống kê tình hình kinh doanh trong một khoảng thời gian của tất cả sản phẩm | Admin xem biểu đồ lợi nhuận của trang web
+| FR-013 | Quản lý danh mục sản phẩm | Admin có thể thêm sửa xóa danh mục sản phẩm như: sport, casual, giày da, giày lười.
+| FR-014 | Quản lý khuyến mãi | Admin có thể tạo, sửa, xóa chương trình khuyến mãi.
+| FR-015 | Phản hồi khách hàng | Admin xem, xử lý phản hồi từ khách hàng.
+| FR-016 | Nhắn tin với quản trị viên | Người dùng gửi tin nhắn cho quản trị viên.
+| FR-017 | Đánh giá sản phẩm | Người dùng đánh giá sản phẩm.
+| FR-018 | Xác nhận giao hàng | Shipper xác nhận đã giao hàng thành công.
+| FR-019 | Xem thông báo | Người dùng xem thông báo từ hệ thống.
+| FR-020 | Không cần đăng nhập khi mua hàng | Người dùng có thể mua hàng với tư cách khách vãng lai.
+| FR-021 | Quản lí mã giảm giá | Admin có thể tạo, sửa, xóa mã giảm giá.
+| FR-023 | Mua hàng từ trang sản phẩm | Người dùng mua hàng từ trang sản phẩm.
+| FR-024 | Mua hàng từ trang giỏ hàng | Người dùng mua hàng từ trang giỏ hàng.
+| FR-025 | Dashboard theo dõi | Admin xem báo cáo hiệu quả của từng chương trình khuyến mãi.
+|===
+
+=== Non-Functional Requirements
+
+[cols="2*", options="header"]
+|===
+|ID | Tên yêu cầu
+|NFR-1| Hệ thống phải có giao diện thân thiện, dễ sử dụng
+|NFR-2| Hiệu suất hệ thống phải đáp ứng tối thiểu 100 người dùng đồng thời
+|NFR-3| Dữ liệu phải được mã hóa để bảo vệ thông tin khách hàng
+|NFR-4| Thời gian phản hồi của trang web phải dưới 2 giây
+|NFR-5| Hệ thống phải hỗ trợ đa ngôn ngữ (Tiếng Anh, Tiếng Việt)
+|===
+
+=== Interface Requirements
+
+**Giao diện người dùng:** Thiết kế theo chuẩn **Material Design**.
+
+**API hệ thống:** RESTful API theo chuẩn OpenAPI.
+
+**Giao diện thanh toán:** Tích hợp VNPay, Stripe.
+
+=== System Requirements
+
+**Yêu cầu phần cứng:** Server tối thiểu 4 CPU, 16GB RAM.
+
+**Yêu cầu phần mềm:** Node.js (backend), React.js (frontend), MySQL.
+
+== Limit
+
+Hệ thống chỉ hỗ trợ thanh toán VNPay, Stripe trong giai đoạn đầu.
+
+Chỉ hỗ trợ giao hàng trong nội địa Việt Nam.
+
+== Appendices
+
+Phương thức thanh toán: Stripe, VNPay
+
+Công nghệ sử dụng: React.js, NodeJS(NextJS), MongoDB, MySQL
+
+Bảo mật: Tuân thủ tiêu chuẩn OWASP Top 10
+
+

@@ -1,0 +1,109 @@
+= Sơ đồ DFD mức 1 Quản lý kho
+:sectnums:
+:icons: font
+:source-highlighter: coderay
+:imagesdir: image
+:toc:
+
+== Thực thể và Kho dữ liệu liên quan:
+* Thực thể:
+
+- Admin (Quản trị viên): Thực thể bên ngoài, có quyền quản lý tồn kho sản phẩm.
+- Hệ thống tự động: Thực thể nội bộ, thực hiện việc cập nhật tồn kho tự động khi có đơn hàng mới.
+
+* Kho dữ liệu:
+
+- CSDL Sản phẩm: Lưu trữ thông tin chi tiết về sản phẩm, bao gồm số lượng tồn kho hiện tại.
+- CSDL Đơn hàng: Lưu trữ thông tin đơn hàng, được sử dụng để cập nhật tồn kho khi có đơn mới.
+- CSDL Nhập kho: Lưu trữ thông tin về các đợt nhập kho, bổ sung sản phẩm.
+
+== Các quy trình chính:
+. Cập nhật tồn kho thủ công:
+
+* Admin nhập thông tin cập nhật tồn kho mới (thêm/giảm số lượng).
+* Hệ thống kiểm tra tính hợp lệ của dữ liệu.
+* Cập nhật số lượng tồn kho trong CSDL Sản phẩm.
+
+
+. Cập nhật tồn kho tự động khi đặt hàng:
+
+* Khi có đơn hàng mới được xác nhận thanh toán.
+* Hệ thống tự động trừ số lượng sản phẩm trong đơn hàng từ tồn kho.
+* Cập nhật số lượng tồn kho mới trong CSDL Sản phẩm.
+
+
+. Nhập kho sản phẩm mới:
+
+* Admin tạo phiếu nhập kho mới với thông tin sản phẩm và số lượng.
+* Hệ thống kiểm tra và xác nhận thông tin nhập kho.
+* Cập nhật số lượng tồn kho trong CSDL Sản phẩm.
+* Lưu thông tin nhập kho vào CSDL Nhập kho.
+
+
+. Kiểm tra tồn kho:
+
+* Admin yêu cầu xem báo cáo tồn kho hiện tại.
+* Hệ thống truy vấn CSDL Sản phẩm để lấy thông tin tồn kho.
+* Hiển thị báo cáo tồn kho cho Admin.
+
+
+. Cảnh báo tồn kho thấp:
+
+* Hệ thống tự động kiểm tra định kỳ số lượng tồn kho.
+* Nếu số lượng tồn kho dưới ngưỡng cảnh báo, hệ thống tạo thông báo.
+* Gửi thông báo cảnh báo tồn kho thấp đến Admin.
+
+== Sơ đồ DFD mức 1: Quản lý kho
+image::DFD1QLKho.png[]
+
+== Mô tả chi tiết luồng dữ liệu
+1. Cập nhật tồn kho thủ công:
+
+* Dữ liệu vào: Admin → [1. Cập nhật tồn kho thủ công]: Thông tin cập nhật (mã sản phẩm, số lượng điều chỉnh, lý do).
+* Xử lý: Quy trình kiểm tra tính hợp lệ của dữ liệu (đảm bảo số lượng không âm sau khi cập nhật).
+* Dữ liệu ra:
+
+** [1. Cập nhật tồn kho thủ công] → CSDL Sản phẩm: Cập nhật số lượng tồn kho mới.
+** [1. Cập nhật tồn kho thủ công] → Admin: Xác nhận cập nhật thành công.
+
+
+
+2. Cập nhật tồn kho tự động khi đặt hàng:
+
+* Dữ liệu vào: Hệ thống tự động → [2. Cập nhật tồn kho tự động]: Thông tin đơn hàng mới (sản phẩm, số lượng).
+* Xử lý: Quy trình truy xuất CSDL Đơn hàng để xác nhận đơn hàng đã thanh toán và cần trừ tồn kho.
+* Dữ liệu ra:
+
+** [2. Cập nhật tồn kho tự động] → CSDL Sản phẩm: Giảm số lượng tồn kho theo đơn hàng.
+
+
+
+3. Nhập kho sản phẩm mới:
+
+* Dữ liệu vào: Admin → [3. Nhập kho sản phẩm mới]: Thông tin nhập kho (danh sách sản phẩm, số lượng, nhà cung cấp, ngày nhập).
+* Xử lý: Quy trình xác nhận thông tin nhập kho và chuẩn bị cập nhật vào hệ thống.
+* Dữ liệu ra:
+
+** [3. Nhập kho sản phẩm mới] → CSDL Sản phẩm: Tăng số lượng tồn kho.
+** [3. Nhập kho sản phẩm mới] → CSDL Nhập kho: Lưu thông tin phiếu nhập kho.
+** [3. Nhập kho sản phẩm mới] → Admin: Xác nhận nhập kho thành công.
+
+
+
+4. Kiểm tra tồn kho:
+
+* Dữ liệu vào: Admin → [4. Kiểm tra tồn kho]: Yêu cầu xem báo cáo tồn kho (kèm bộ lọc nếu có).
+* Xử lý: Quy trình truy vấn dữ liệu tồn kho từ CSDL Sản phẩm.
+* Dữ liệu ra:
+
+** [4. Kiểm tra tồn kho] → Admin: Báo cáo tồn kho (bao gồm số lượng hiện tại, lịch sử thay đổi).
+
+
+
+5. Cảnh báo tồn kho thấp:
+
+* Dữ liệu vào: Hệ thống tự động → [5. Cảnh báo tồn kho thấp]: Yêu cầu kiểm tra định kỳ.
+* Xử lý: Quy trình truy vấn CSDL Sản phẩm để tìm các sản phẩm có số lượng dưới ngưỡng cảnh báo.
+* Dữ liệu ra:
+
+** [5. Cảnh báo tồn kho thấp] → Admin: Thông báo các sản phẩm có tồn kho thấp cần bổ sung.

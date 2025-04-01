@@ -1,0 +1,99 @@
+= Sơ đồ DFD mức 1 Quy trình thêm sản phẩm vào trong giỏ hàng
+:sectnums:
+:source-highlighter: pygments
+:toc:
+
+== Các thực thể và kho dữ liệu liên quan
+    * Thực thể bên ngoài:
+
+        - Người dùng/Khách hàng: Thực hiện thao tác thêm sản phẩm vào giỏ hàng.
+
+    * Kho dữ liệu:
+
+        - CSDL Sản phẩm: Lưu trữ thông tin sản phẩm (ID, tên, mô tả).
+
+        - CSDL Kho hàng: Lưu trữ số lượng tồn kho của sản phẩm (ID sản phẩm, số lượng).
+
+        - CSDL Giỏ hàng: Lưu trữ danh sách sản phẩm và số lượng người dùng đã chọn.
+
+== Các quy trình chính:
+
+1. Người dùng chọn sản phẩm
+
+    * Luồng dữ liệu:
+
+        - Người dùng → [1. Chọn sản phẩm]: Gửi yêu cầu thêm sản phẩm (ID sản phẩm, số lượng).
+
+2. Kiểm tra tồn tại của sản phẩm
+
+    * Luồng dữ liệu:
+
+        - [2. Kiểm tra tồn tại] → CSDL Sản phẩm: Truy vấn thông tin sản phẩm (ID).
+
+        - CSDL Sản phẩm → [2. Kiểm tra tồn tại]: Trả về kết quả (tồn tại/không tồn tại).
+
+        - Xử lý:
+
+            *** Nếu sản phẩm không tồn tại → Chuyển sang 6. Thông báo lỗi.
+
+            *** Nếu sản phẩm tồn tại → Chuyển sang 3. Kiểm tra tồn kho.
+
+3. Kiểm tra tồn kho
+
+    * Cải tiến: Thêm bước kiểm tra số lượng tồn kho để đảm bảo không vượt quá giới hạn.
+
+    * Luồng dữ liệu:
+
+        - [3. Kiểm tra tồn kho] → CSDL Kho hàng: Truy vấn số lượng tồn kho (ID sản phẩm).
+
+        - CSDL Kho hàng → [3. Kiểm tra tồn kho]: Trả về số lượng hiện có.
+
+        - Xử lý:
+
+            *** Nếu số lượng yêu cầu > tồn kho → Thông báo lỗi "Số lượng vượt quá tồn kho".
+
+            *** Nếu số lượng hợp lệ → Chuyển sang 4. Thêm vào giỏ hàng.
+
+4. Thêm sản phẩm vào giỏ hàng
+
+    * Luồng dữ liệu:
+
+        - [4. Thêm vào giỏ hàng] → CSDL Giỏ hàng:
+
+            *** Nếu sản phẩm đã có trong giỏ: Cập nhật số lượng.
+
+            *** Nếu sản phẩm chưa có trong giỏ: Thêm mới (ID, số lượng).
+
+        - CSDL Giỏ hàng → [4. Thêm vào giỏ hàng]: Xác nhận đã lưu.
+
+5. Phản hồi thành công
+
+    * Luồng dữ liệu:
+
+        - [5. Phản hồi thành công] → Người dùng: Hiển thị thông báo "Đã thêm vào giỏ hàng" và cập nhật giao diện giỏ hàng.
+
+6. Thông báo lỗi
+
+    * Luồng dữ liệu:
+
+        - [6. Thông báo lỗi] → Người dùng:
+
+           *** "Sản phẩm không tồn tại" (nếu bước 2 thất bại).
+
+           *** "Số lượng vượt quá tồn kho" (nếu bước 3 thất bại)
+
+== Sơ đồ DFD mức 1 (Mô tả bằng văn bản)
+
+   . Người dùng gửi yêu cầu thêm sản phẩm vào giỏ hàng.
+
+   . Hệ thống kiểm tra sự tồn tại của sản phẩm trong CSDL Sản phẩm.
+
+   . Nếu sản phẩm tồn tại, hệ thống kiểm tra số lượng tồn kho từ CSDL Kho hàng.
+
+   . Nếu số lượng hợp lệ, hệ thống thêm/cập nhật sản phẩm trong CSDL Giỏ hàng.
+
+   . Hệ thống phản hồi thành công hoặc thông báo lỗi cho người dùng.
+
+== Sơ đồ DFD mức 1 Quy trình thêm sản phẩm vào trong giỏ hàng
+
+image::image/DFD1ThemGH.png[]

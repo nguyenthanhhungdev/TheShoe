@@ -1,0 +1,53 @@
+= Sơ đồ DFD mức 1 Quản lý Đánh Giá/ Phản Hồi
+:sectnums:
+:icons: font
+:source-highlighter: coderay
+:imagesdir: image
+:toc:
+
+== Thực thể và Kho dữ liệu liên quan:
+* Thực thể:
+
+- Khách hàng: Người đã mua sản phẩm, có thể đánh giá và viết nhận xét về sản phẩm.
+- Admin: Người quản lý hệ thống, có quyền duyệt, xóa, hoặc phản hồi các đánh giá.
+
+* Kho dữ liệu:
+
+- CSDL Đánh giá: Lưu trữ tất cả đánh giá và nhận xét của khách hàng.
+- CSDL Sản phẩm: Chứa thông tin về sản phẩm, liên kết với đánh giá.
+- CSDL Đơn hàng: Dùng để xác minh khách hàng đã mua sản phẩm trước khi cho phép đánh giá.
+- CSDL Người dùng: Lưu thông tin người dùng để liên kết với đánh giá.
+
+== Các quy trình chính:
+1. Tạo đánh giá sản phẩm:
+
+* Dữ liệu vào: Khách hàng chọn sản phẩm và gửi nội dung đánh giá (điểm số, nhận xét, hình ảnh).
+* Xử lý: Hệ thống kiểm tra xem khách hàng đã mua sản phẩm chưa (qua CSDL Đơn hàng). Nếu đã mua, đánh giá được chấp nhận ngay lập tức.
+* Dữ liệu ra: Hệ thống lưu đánh giá vào CSDL Đánh giá với trạng thái "đã đăng", thông báo cho khách hàng đánh giá đã được đăng thành công và hiển thị trên trang sản phẩm.
+
+2. Quản lý đánh giá (dành cho Admin):
+
+* Dữ liệu vào: Admin truy cập danh sách các đánh giá trong hệ thống.
+* Xử lý: Admin có thể xem xét, tìm kiếm và lọc đánh giá theo sản phẩm, người dùng, hoặc nội dung.
+* Dữ liệu ra: Danh sách đánh giá được hiển thị cho Admin kèm theo tùy chọn xem chi tiết và phản hồi.
+
+3. Phản hồi đánh giá:
+
+* Dữ liệu vào: Admin chọn đánh giá cần phản hồi và nhập nội dung phản hồi.
+* Xử lý: Hệ thống liên kết phản hồi với đánh giá tương ứng.
+* Dữ liệu ra: Phản hồi được lưu vào CSDL Đánh giá, hiển thị công khai kèm theo đánh giá gốc.
+
+4. Hiển thị đánh giá:
+
+* Dữ liệu vào: Yêu cầu xem đánh giá của sản phẩm từ khách hàng.
+* Xử lý: Hệ thống truy vấn tất cả đánh giá của sản phẩm từ CSDL Đánh giá.
+* Dữ liệu ra: Danh sách đánh giá được hiển thị cho khách hàng, bao gồm điểm đánh giá, nhận xét, và phản hồi từ admin (nếu có).
+
+5. Chỉnh sửa/Xóa đánh giá (chỉ dành cho khách hàng):
+
+* Dữ liệu vào: Khách hàng yêu cầu chỉnh sửa hoặc xóa đánh giá của họ.
+* Xử lý: Hệ thống xác thực quyền (khách hàng chỉ có thể chỉnh sửa/xóa đánh giá của mình). Nếu xác thực thành công, hệ thống thực hiện yêu cầu chỉnh sửa hoặc xóa.
+* Dữ liệu ra: Cập nhật hoặc xóa đánh giá trong CSDL Đánh giá, thông báo kết quả cho khách hàng.
+
+== Sơ đồ DFD mức 1: Quản lý Đánh Giá/ Phản Hồi
+image::DFD1QLDAPH.png[]

@@ -1,0 +1,19 @@
+= Sơ đồ DFD mức 1 Tìm kiếm sản phẩm
+:sectnums:
+:icons: font
+:source-highlighter: coderay
+:toc:
+
+== Thực thể & Kho dữ liệu liên quan:
+* Người dùng (Khách hàng): Gửi yêu cầu tìm kiếm (nhập từ khóa hoặc bộ lọc).
+* CSDL Sản phẩm: Lưu trữ thông tin sản phẩm (tên, danh mục, giá, màu sắc, kích thước, mô tả, tồn kho).
+* Hệ thống Tìm kiếm: Xử lý truy vấn tìm kiếm và trả về kết quả.
+
+== Các quy trình chính của Tìm kiếm sản phẩm:
+* Nhận yêu cầu tìm kiếm: Người dùng nhập từ khóa hoặc chọn bộ lọc tìm kiếm trên giao diện và gửi yêu cầu đến hệ thống.
+* Xử lý truy vấn tìm kiếm: Hệ thống Tìm kiếm kiểm tra tiêu chí, tạo truy vấn phù hợp dựa trên từ khóa hoặc bộ lọc.
+* Truy vấn CSDL Sản phẩm: Hệ thống thực thi truy vấn trên CSDL Sản phẩm để lấy danh sách sản phẩm phù hợp với tiêu chí (các sản phẩm có tên, danh mục, giá hoặc thuộc tính khớp với từ khóa/bộ lọc của người dùng).
+* Trả kết quả tìm kiếm: Hệ thống Tìm kiếm gửi danh sách sản phẩm phù hợp (bao gồm tên, giá, hình ảnh, mô tả tóm tắt) về lại giao diện người dùng để hiển thị.
+
+== Sơ đồ DFD mức 1: Tìm kiếm sản phẩm
+image::DFD Mức 1 (1)-2025-03-05-000516.png[]

@@ -1,0 +1,133 @@
+= Sơ đồ DFD mức 1 Mua hàng từ trang giỏ hàng
+:sectnums:
+:toc:
+
+== Thực Thể Bên Ngoài và Kho Dữ Liệu Liên Quan
+
+    * Thực thể bên ngoài:
+
+        - Người dùng/Khách hàng: Thêm/xóa sản phẩm vào giỏ hàng, điều chỉnh số lượng, thanh toán.
+
+        - Hệ thống thanh toán (Stripe/VNPay): Xử lý giao dịch thanh toán.
+
+        - Shipper: Nhận thông tin đơn hàng để giao hàng.
+
+        - Admin: Theo dõi đơn hàng và doanh thu.
+
+    * Kho dữ liệu:
+
+        - CSDL Giỏ hàng: Lưu trữ sản phẩm và số lượng người dùng đã chọn.
+
+        - CSDL Sản phẩm: Lưu thông tin chi tiết sản phẩm (tên, giá, mô tả).
+
+        - CSDL Kho hàng: Kiểm tra và cập nhật tồn kho (số lượng sản phẩm còn lại).
+
+        - CSDL Đơn hàng: Lưu trữ thông tin đơn hàng sau thanh toán.
+
+        - CSDL Mã giảm giá: Xác thực mã giảm giá.
+
+        - CSDL Người dùng: Lưu địa chỉ giao hàng đã lưu (nếu đăng nhập).
+
+        - LocalStorage: Lưu thông tin khách vãng lai (nếu chưa đăng nhập).
+
+== Các Quy Trình Chính
+
+1. Xem giỏ hàng
+
+    * Luồng dữ liệu:
+
+        - Người dùng → [1. Xem giỏ hàng]: Yêu cầu truy cập trang giỏ hàng.
+
+        - [1. Xem giỏ hàng] → CSDL Giỏ hàng: Truy vấn danh sách sản phẩm.
+
+        - [1. Xem giỏ hàng] → CSDL Sản phẩm: Lấy thông tin chi tiết (tên, giá, hình ảnh).
+
+        - [1. Xem giỏ hàng] → Người dùng: Hiển thị giỏ hàng với tổng tiền tạm tính.
+
+2. Điều chỉnh giỏ hàng
+
+    * Luồng dữ liệu:
+
+        - Người dùng → [2. Điều chỉnh giỏ hàng]: Thay đổi số lượng hoặc xóa sản phẩm.
+
+        - [2. Điều chỉnh giỏ hàng] → CSDL Giỏ hàng: Cập nhật số lượng/xóa sản phẩm.
+
+        - [2. Điều chỉnh giỏ hàng] → CSDL Kho hàng: Kiểm tra tồn kho (nếu tăng số lượng).
+
+        - CSDL Kho hàng → [2. Điều chỉnh giỏ hàng]: Xác nhận số lượng hợp lệ.
+
+        - [2. Điều chỉnh giỏ hàng] → Người dùng: Hiển thị giỏ hàng đã cập nhật.
+
+3. Áp dụng mã giảm giá
+
+    * Luồng dữ liệu:
+
+        - Người dùng → [3. Áp dụng mã giảm giá]: Nhập mã giảm giá.
+
+        - [3. Áp dụng mã giảm giá] → CSDL Mã giảm giá: Kiểm tra tính hợp lệ.
+
+        - CSDL Mã giảm giá → [3. Áp dụng mã giảm giá]: Xác nhận mã và mức giảm giá.
+
+        - [3. Áp dụng mã giảm giá] → Người dùng: Hiển thị tổng tiền sau giảm.
+
+4. Kiểm tra đăng nhập và địa chỉ
+
+    * Luồng dữ liệu:
+
+        - Nếu đã đăng nhập:
+
+            *** [4. Kiểm tra đăng nhập] → CSDL Người dùng: Lấy địa chỉ giao hàng đã lưu.
+
+            *** CSDL Người dùng → [4. Kiểm tra đăng nhập]: Trả về danh sách địa chỉ.
+
+        - Nếu chưa đăng nhập:
+
+            *** [4. Kiểm tra đăng nhập] → LocalStorage: Lấy thông tin khách vãng lai.
+
+5. Xác thực thanh toán
+
+    * Luồng dữ liệu:
+
+        - Người dùng → [5. Xác thực thanh toán]: Chọn phương thức thanh toán (thẻ, ví điện tử).
+
+        - [5. Xác thực thanh toán] → Hệ thống thanh toán (Stripe/VNPay): Gửi yêu cầu thanh toán.
+
+        - Hệ thống thanh toán → [5. Xác thực thanh toán]: Phản hồi trạng thái (thành công/thất bại).
+
+6. Tạo đơn hàng và cập nhật tồn kho
+
+    * Luồng dữ liệu:
+
+        - [6. Tạo đơn hàng] → CSDL Đơn hàng: Lưu thông tin đơn hàng (sản phẩm, số lượng, địa chỉ).
+
+        - [6. Tạo đơn hàng] → CSDL Kho hàng: Trừ số lượng tồn kho đã bán.
+
+        - [6. Tạo đơn hàng] → Shipper: Gửi thông tin giao hàng (địa chỉ, sản phẩm).
+
+        - [6. Tạo đơn hàng] → Admin: Thông báo đơn hàng mới qua CSDL Đơn hàng.
+
+7. Thông báo xác nhận và xóa giỏ hàng
+
+    * Luồng dữ liệu:
+
+        - [7. Thông báo xác nhận] → Người dùng: Hiển thị thông báo thành công/email xác nhận.
+
+        - [7. Thông báo xác nhận] → CSDL Giỏ hàng: Xóa toàn bộ sản phẩm sau khi đặt hàng thành công.
+
+== Sơ đồ DFD mức 1 (Mô tả bằng văn bản)
+
+    * Người dùng tương tác với hệ thống qua các bước:
+
+        - Truy cập giỏ hàng → Điều chỉnh sản phẩm → Áp dụng mã giảm giá → Kiểm tra đăng nhập → Thanh toán → Tạo đơn hàng → Nhận thông báo.
+
+    * Dữ liệu được xử lý qua các kho:
+
+        - CSDL Giỏ hàng (lưu sản phẩm), CSDL Kho hàng (kiểm tra tồn kho), CSDL Đơn hàng (lưu đơn).
+
+    * Hệ thống thanh toán xử lý giao dịch và phản hồi kết quả.
+
+    * Shipper và Admin nhận thông tin đơn hàng sau khi hoàn tất.
+
+== Sơ đồ DFD mức 1 Mua hàng từ trang giỏ hàng
+
+image::image/DFD1MuaTrangGH.png[]

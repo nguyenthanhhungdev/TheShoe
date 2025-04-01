@@ -1,0 +1,53 @@
+= Quản lý sản phẩm
+:sectnums:
+:icons: font
+:source-highlighter: coderay
+:imagesdir: .
+:toc:
+
+
+== Thực thể và Kho dữ liệu liên quan:
+
+* Admin (Quản trị viên) – Người duy nhất có quyền quản lý sản phẩm (thêm, sửa, xóa sản phẩm).
+* Khách hàng – Người dùng có thể xem danh sách sản phẩm trên website nhưng không có quyền chỉnh sửa.
+* CSDL Sản phẩm – Cơ sở dữ liệu lưu trữ thông tin các sản phẩm (tên, mô tả, giá, số lượng tồn kho, danh mục, v.v.).
+* CSDL Danh mục sản phẩm – Cơ sở dữ liệu lưu trữ danh mục các sản phẩm (phân loại sản phẩm theo loại, thương hiệu, ...).
+* CSDL Đơn hàng – Cơ sở dữ liệu lưu trữ đơn hàng; được dùng để kiểm tra trạng thái đơn hàng khi thực hiện xóa sản phẩm (xem sản phẩm có đang trong đơn hàng chưa giao hay không).
+
+== Các quy trình chính (DFD mức 1) của chức năng Quản lý sản phẩm:
+
+    . Thêm sản phẩm mới:
+        * Dữ liệu vào: Admin nhập thông tin sản phẩm mới (tên, mô tả, giá, số lượng tồn kho, danh mục, hình ảnh, ...). Thông tin này được gửi vào quy trình Thêm sản phẩm mới.
+        * Xử lý: Quy trình kiểm tra tính hợp lệ của dữ liệu: đảm bảo các trường thông tin không trống, giá sản phẩm không âm, tên sản phẩm không trùng lặp với sản phẩm đã có, v.v. (theo yêu cầu nghiệp vụ).
+        * Dữ liệu ra & Lưu trữ: Nếu thông tin hợp lệ, quy trình lưu “dữ liệu sản phẩm mới” vào CSDL Sản phẩm (tạo bản ghi sản phẩm mới). Đồng thời, cập nhật CSDL Danh mục sản phẩm để liên kết sản phẩm mới với danh mục tương ứng (ví dụ: tăng số lượng sản phẩm thuộc danh mục đó hoặc thêm sản phẩm vào danh sách của danh mục).
+        * Phản hồi: Hệ thống gửi thông báo kết quả thêm sản phẩm về cho Admin (ví dụ: “Thêm sản phẩm thành công” hoặc lỗi nếu không thành công).
+        * Cập nhật hiển thị: Sau khi thêm thành công, quy trình này gửi một tín hiệu hoặc kích hoạt quy trình 4. Cập nhật trạng thái hiển thị sản phẩm để giao diện người dùng được bổ sung sản phẩm mới.
+
+    . Sửa thông tin sản phẩm:
+        * Dữ liệu vào (chọn sản phẩm): Admin chọn một sản phẩm cần chỉnh sửa (bằng cách cung cấp mã sản phẩm hoặc chọn từ danh sách). Yêu cầu Xem thông tin sản phẩm hiện tại được gửi vào quy trình Sửa thông tin sản phẩm.
+        * Truy xuất & hiển thị: Quy trình truy vấn CSDL Sản phẩm để lấy thông tin hiện tại của sản phẩm (tên, mô tả, giá, tồn kho, danh mục, ...). Thông tin này được gửi đến Admin (hiển thị trên giao diện quản trị) để Admin thấy dữ liệu cũ.
+        * Dữ liệu vào (cập nhật): Admin sau đó nhập thông tin sản phẩm mới cần cập nhật (thay đổi các trường cần thiết) và gửi yêu cầu cập nhật vào quy trình.
+        * Xử lý: Quy trình kiểm tra lại các ràng buộc trước khi lưu: ví dụ kiểm tra số lượng tồn kho (phải >= 0, và nếu giảm số lượng thì phải đảm bảo không ít hơn số lượng đã đặt trong các đơn hàng chưa xử lý, nếu có), kiểm tra tính hợp lệ của các thay đổi khác (giá không âm, tên mới không trùng với sản phẩm khác,...).
+        * Dữ liệu ra & Lưu trữ: Nếu hợp lệ, hệ thống cập nhật “thông tin sản phẩm” trong CSDL Sản phẩm (sửa bản ghi sản phẩm với dữ liệu mới). Nếu có thay đổi về danh mục, hệ thống cũng cập nhật CSDL Danh mục sản phẩm (ví dụ: chuyển sản phẩm sang danh mục mới hoặc cập nhật lại số lượng trong các danh mục cũ và mới).
+        * Phản hồi: Hệ thống gửi kết quả cập nhật về cho Admin (ví dụ: “Cập nhật thành công” hoặc thông báo lỗi nếu vi phạm ràng buộc).
+        * Cập nhật hiển thị: Sau khi sửa thành công, quy trình này kích hoạt quy trình 4. Cập nhật trạng thái hiển thị sản phẩm, đảm bảo trang web hiển thị thông tin đã được chỉnh sửa cho người dùng.
+
+    . Xóa sản phẩm khỏi hệ thống:
+        * Dữ liệu vào: Admin chọn sản phẩm cần xóa và gửi yêu cầu xóa sản phẩm (kèm mã sản phẩm) vào quy trình Xóa sản phẩm.
+        * Kiểm tra đơn hàng liên quan: Quy trình Xóa sản phẩm gửi yêu cầu kiểm tra trạng thái đơn hàng của sản phẩm tới CSDL Đơn hàng. Mục đích là xác định sản phẩm này đã từng được đặt mua chưa và tình trạng giao hàng ra sao.
+        * Nhận dữ liệu kiểm tra: CSDL Đơn hàng trả về thông tin trạng thái đơn hàng liên quan đến sản phẩm cho quy trình (ví dụ: sản phẩm chưa từng xuất hiện trong đơn hàng nào, chỉ có trong đơn đã giao, hoặc đang có trong đơn hàng chưa giao).
+        * Xử lý quyết định xóa:
+            . Nếu sản phẩm đang có trong ít nhất một đơn hàng chưa giao (đơn hàng đang chờ xử lý/giao hàng), => Quy trình Xóa sản phẩm từ chối xóa sản phẩm này. Hệ thống gửi thông báo lỗi cho Admin (ví dụ: “Không thể xóa sản phẩm vì đang có trong đơn hàng chưa giao”) và kết thúc quy trình xóa (sản phẩm không bị xóa).
+            . Nếu sản phẩm chưa từng có trong đơn hàng nào, hoặc chỉ xuất hiện trong các đơn hàng đã giao/hủy (tức không còn đơn nào đang chờ với sản phẩm này), => cho phép xóa. Quy trình sẽ thực hiện xóa sản phẩm trong CSDL Sản phẩm (gỡ bỏ bản ghi tương ứng). Đồng thời, có thể cập nhật CSDL Danh mục sản phẩm (giảm số lượng sản phẩm trong danh mục hoặc ghi nhận rằng sản phẩm không còn tồn tại).
+        * Phản hồi: Hệ thống gửi kết quả xóa về Admin. Nếu thành công: thông báo sản phẩm đã được xóa khỏi hệ thống; nếu thất bại (do vướng đơn hàng): thông báo lý do không xóa được.
+        Cập nhật hiển thị: Sau khi xóa thành công một sản phẩm, quy trình này cũng kích hoạt quy trình 4. Cập nhật trạng thái hiển thị sản phẩm, để sản phẩm vừa xóa không còn xuất hiện trên danh sách sản phẩm của website.
+
+    . Cập nhật trạng thái hiển thị sản phẩm:
+        * Quy trình này chịu trách nhiệm cập nhật danh sách sản phẩm trên giao diện website mỗi khi có thay đổi từ các quy trình trên (thêm/sửa/xóa).
+        * Dữ liệu vào: Quy trình 4 được kích hoạt bởi dữ liệu đầu ra của các quy trình 1, 2, 3. Cụ thể, sau khi thêm/sửa/xóa, quy trình 4 sẽ nhận tín hiệu rằng “danh sách sản phẩm đã thay đổi”.
+        * Xử lý & Truy xuất dữ liệu: Quy trình Cập nhật hiển thị sẽ lấy danh sách sản phẩm mới nhất từ CSDL Sản phẩm (có thể bao gồm cả thông tin danh mục nếu cần thiết để hiển thị).
+        * Dữ liệu ra (cập nhật giao diện): Quy trình sau đó gửi “danh sách sản phẩm cập nhật” đến Khách hàng thông qua giao diện website. Điều này đảm bảo rằng Khách hàng luôn xem được danh sách sản phẩm mới nhất (bao gồm sản phẩm mới thêm, thông tin đã chỉnh sửa, hoặc đã loại bỏ sản phẩm không còn kinh doanh). Nói cách khác, trang web sẽ phản ánh kịp thời mọi thay đổi trong quản lý sản phẩm.
+
+== Sơ đồ DFD mức 1: Quản lý sản phẩm
+
+image::DFD1QLSP.png[Sơ đồ DFD mức 1: Quản lý sản phẩm]

@@ -1,0 +1,307 @@
+= Phân tích ERD hệ thống web bán giày
+
+:toc:
+:toclevels: 3
+:imagesdir: image
+
+== 1. Giới thiệu
+
+Tài liệu này trình bày phân tích thiết kế Cơ sở dữ liệu của hệ thống web bán giày, sử dụng mô hình Thực thể - Quan hệ (ERD).
+
+== 2. Phân tích ERD
+
+=== 2.1. Bước 1: Xác định tập thực thể
+
+Danh sách các thực thể:
+
+1. **User (Người dùng)**: Đại diện cho người dùng trong hệ thống.
+2. **Role (Vai trò)**: Ví dụ: "khách hàng", "quản trị viên", "shipper".
+3. **Permission (Quyền)**: Ví dụ: "xem sản phẩm", "quản lý đơn hàng".
+4. **Product (Sản phẩm)**
+5. **Category (Danh mục)**
+6. **Order (Đơn hàng)**
+7. **Cart (Giỏ hàng)**
+8. **Address (Địa chỉ)**
+9. **Payment (Thanh toán)**
+10. **Shipping (Giao hàng)**
+11. **Promotion (Khuyến mãi)**
+12. **DiscountCode (Mã giảm giá)**
+13. **Review (Đánh giá)**
+14. **Wishlist (Danh sách mong muốn)**
+
+=== 2.2. Bước 2: Xác định mối quan hệ
+
+[cols="1,3,2"]
+|===
+| Mối quan hệ | Mô tả | Bảng trung gian
+| User - Role | N:M | UserRole
+| Role - Permission | N:M | RolePermission
+| User - Address | 1:N | —
+| User - Order | 1:N | —
+| User - Cart | 1:1 | —
+| User - Wishlist | 1:1 | —
+| Product - Category | 1:N | —
+| Product - Review | 1:N | —
+| Order - Product | N:M | OrderDetail
+| Order - Payment | 1:1 | —
+| Order - Shipping | 1:N | —
+| Cart - Product | N:M | CartItem
+| Promotion - Product | N:M | PromotionProduct
+| DiscountCode - Order | 1:N | —
+|===
+
+=== 2.3. Bước 3: Xác định thuộc tính
+
+==== Thực thể chính
+
+.User
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| id (PK) | UUID/INT | Mã định danh
+| name | VARCHAR(100) | Tên người dùng
+| email (UK) | VARCHAR(255) | Email duy nhất
+| sodienthoai | VARCHAR(255) | Số điện thoại duy nhất
+| password | VARCHAR(255) | Mật khẩu mã hóa
+| created_at | TIMESTAMP | Thời gian tạo
+| updated_at | TIMESTAMP | Thời gian cập nhật
+|===
+
+.Role
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| id (PK) | UUID/INT | Mã vai trò
+| name | VARCHAR(50) | Tên vai trò (admin/customer/shipper)
+| description | TEXT | Mô tả chức năng
+| created_at | TIMESTAMP | Thời gian tạo
+| updated_at | TIMESTAMP | Thời gian cập nhật
+|===
+
+.Permission
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| id (PK) | UUID/INT | Mã quyền
+| name | VARCHAR(50) | Tên quyền (view_product/manage_order)
+| description | TEXT | Mô tả chi tiết
+| created_at | TIMESTAMP | Thời gian tạo
+| updated_at | TIMESTAMP | Thời gian cập nhật
+|===
+
+.Product
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| id (PK) | UUID/INT | Mã sản phẩm
+| name | VARCHAR(200) | Tên sản phẩm
+| description | TEXT | Mô tả chi tiết
+| stock_price | DECIMAL(10,2) | Giá thực của sản phẩm
+| price | DECIMAL(10,2) | Giá bán
+| stock_quantity | INT | Số lượng tồn kho
+| category_id (FK) | UUID/INT | Liên kết danh mục
+| created_at | TIMESTAMP | Thời gian tạo
+| updated_at | TIMESTAMP | Thời gian cập nhật
+|===
+
+.Category
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| id (PK) | UUID/INT | Mã danh mục
+| name | VARCHAR(100) | Tên danh mục
+| description | TEXT | Mô tả
+| created_at | TIMESTAMP | Thời gian tạo
+| updated_at | TIMESTAMP | Thời gian cập nhật
+|===
+
+.Order
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| id (PK) | UUID/INT | Mã đơn hàng
+| user_id (FK) | UUID/INT | Người dùng (nullable)
+| status | ENUM | Trạng thái đơn hàng
+| total_amount | DECIMAL(10,2) | Tổng tiền
+| discount_code_id (FK) | UUID/INT | Mã giảm giá (nullable)
+| created_at | TIMESTAMP | Thời gian tạo
+| updated_at | TIMESTAMP | Thời gian cập nhật
+|===
+
+.Cart
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| id (PK) | UUID/INT | Mã giỏ hàng
+| user_id (FK) | UUID/INT | Liên kết người dùng
+| created_at | TIMESTAMP | Thời gian tạo
+| updated_at | TIMESTAMP | Thời gian cập nhật
+|===
+
+.Address
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| id (PK) | UUID/INT | Mã địa chỉ
+| user_id (FK) | UUID/INT | Liên kết người dùng
+| street | VARCHAR(255) | Địa chỉ chi tiết
+| city | VARCHAR(100) | Thành phố
+| postal_code | VARCHAR(20) | Mã bưu điện
+| is_default | BOOLEAN | Địa chỉ mặc định
+|===
+
+.Payment
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| id (PK) | UUID/INT | Mã thanh toán
+| order_id (FK) | UUID/INT | Liên kết đơn hàng
+| amount | DECIMAL(10,2) | Số tiền
+| method | ENUM | Phương thức thanh toán
+| status | ENUM | Trạng thái thanh toán
+|===
+
+.Shipping
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| id (PK) | UUID/INT | Mã giao hàng
+| order_id (FK) | UUID/INT | Liên kết đơn hàng
+| address_id (FK) | UUID/INT | Địa chỉ giao hàng
+| status | ENUM | Trạng thái (chờ giao/đang giao/đã giao)
+| shipper_id (FK) | UUID/INT | Shipper (nullable)
+| created_at | TIMESTAMP | Thời gian tạo
+| updated_at | TIMESTAMP | Thời gian cập nhật
+|===
+
+.Promotion
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| id (PK) | UUID/INT | Mã khuyến mãi
+| name | VARCHAR(100) | Tên chương trình
+| description | TEXT | Mô tả chi tiết
+| discount_percentage | DECIMAL(5,2) | % giảm giá
+| start_date | DATE | Ngày bắt đầu
+| end_date | DATE | Ngày kết thúc
+| created_at | TIMESTAMP | Thời gian tạo
+| updated_at | TIMESTAMP | Thời gian cập nhật
+|===
+
+.DiscountCode
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| id (PK) | UUID/INT | Mã giảm giá
+| code (UK) | VARCHAR(20) | Mã duy nhất
+| discount_percentage | DECIMAL(5,2) | % giảm giá
+| max_uses | INT | Số lần dùng tối đa
+| uses_count | INT | Số lần đã dùng
+| min_order_value | DECIMAL(10,2) | Giá trị đơn tối thiểu
+| start_date | DATE | Ngày bắt đầu
+| end_date | DATE | Ngày kết thúc
+|===
+
+.Review
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| id (PK) | UUID/INT | Mã đánh giá
+| product_id (FK) | UUID/INT | Liên kết sản phẩm
+| user_id (FK) | UUID/INT | Liên kết người dùng
+| rating | INT(1-5) | Điểm đánh giá
+| comment | TEXT | Bình luận chi tiết
+| created_at | TIMESTAMP | Thời gian tạo
+|===
+
+.Wishlist
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| id (PK) | UUID/INT | Mã danh sách
+| user_id (FK) | UUID/INT | Liên kết người dùng
+| created_at | TIMESTAMP | Thời gian tạo
+| updated_at | TIMESTAMP | Thời gian cập nhật
+|===
+
+==== Bảng trung gian
+
+.OrderDetail
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| order_id (PK, FK) | UUID/INT | Mã đơn hàng
+| product_id (PK, FK) | UUID/INT | Mã sản phẩm
+| quantity | INT | Số lượng
+| price_at_purchase | DECIMAL(10,2) | Giá khi mua
+|===
+
+.CartItem
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| cart_id (PK, FK) | UUID/INT | Mã giỏ hàng
+| product_id (PK, FK) | UUID/INT | Mã sản phẩm
+| quantity | INT | Số lượng
+|===
+
+.UserRole
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| user_id (PK, FK) | UUID/INT | Liên kết User
+| role_id (PK, FK) | UUID/INT | Liên kết Role
+|===
+
+.RolePermission
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| role_id (PK, FK) | UUID/INT | Liên kết Role
+| permission_id (PK, FK) | UUID/INT | Liên kết Permission
+|===
+
+.PromotionProduct
+[cols="1,2,2"]
+|===
+| Tên | Kiểu dữ liệu | Mô tả
+| promotion_id (PK, FK) | UUID/INT | Liên kết Promotion
+| product_id (PK, FK) | UUID/INT | Liên kết Product
+|===
+
+
+// Hoàn thiện tất cả thực thể
+
+=== 2.4. Bước 4: Quyết định kiểu dữ liệu
+
+- **VARCHAR**: Tên, mô tả, email.
+- **DECIMAL**: Giá, tổng tiền.
+- **TIMESTAMP**: Thời gian tạo/cập nhật.
+- **ENUM**: Trạng thái (ví dụ: `status ENUM('chờ xử lý', 'đang giao')`).
+
+=== 2.5. Bước 5: Xác định khóa
+
+[cols="2,3"]
+|===
+| Thực thể | Khóa chính/ngoại
+| User | `id (PK)`
+| Order | `id (PK)`, `user_id (FK)`
+| Product | `id (PK)`, `category_id (FK)`
+|===
+
+=== 2.6. Bước 6: Ràng buộc
+
+[cols="3,3"]
+|===
+| Mối quan hệ | Ràng buộc
+| User - Cart | 1:1 (Mỗi user có 1 giỏ hàng)
+| Order - Payment | 1:1 (Mỗi đơn hàng có 1 thanh toán)
+| DiscountCode - Order | 1:N (1 mã dùng cho nhiều đơn)
+|===
+
+== Sơ đồ ERD 
+image::ERD.png[]
+
+== Kết luận
+
+Tài liệu này đã mô tả chi tiết ERD cho hệ thống web bán giày, bao gồm các thực thể, mối quan hệ, thuộc tính và ràng buộc.

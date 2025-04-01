@@ -1,0 +1,50 @@
+= Sơ đồ DFD mức 1 Phân quyền người dùng
+:sectnums:
+:icons: font
+:source-highlighter: coderay
+:imagesdir: image
+:toc:
+
+== Thực thể và Kho dữ liệu liên quan:
+* Thực thể bên ngoài
+
+** Admin (Quản trị viên): Người quản lý tài khoản và có quyền chỉnh sửa/vô hiệu hóa tài khoản
+** Khách hàng: Người đăng ký tài khoản thông qua hệ thống
+** Shipper: Người giao hàng, tài khoản do Admin tạo
+** Hệ thống Email: Hệ thống bên ngoài gửi email thông báo khi Admin vô hiệu hóa tài khoản
+
+
+* Kho dữ liệu
+
+** CSDL Người dùng: Lưu trữ thông tin tài khoản và quyền hạn của người dùng
+
+== Các quy trình chính:
+. Khách hàng tự đăng ký tài khoản:
+
+* Dữ liệu vào: Thông tin đăng ký từ Khách hàng
+* Xử lý: Module Clerk xác thực dữ liệu và tạo tài khoản với quyền mặc định
+* Dữ liệu ra: Thông tin tài khoản mới được lưu vào CSDL Người dùng
+
+
+. Admin tạo tài khoản Shipper:
+
+* Dữ liệu vào: Thông tin tài khoản Shipper từ Admin
+* Xử lý: Hệ thống xác thực và tạo tài khoản với quyền Shipper
+* Dữ liệu ra: Thông tin tài khoản Shipper lưu vào CSDL Người dùng
+
+
+. Chỉnh sửa hoặc Vô hiệu hóa tài khoản:
+
+* Dữ liệu vào: Yêu cầu chỉnh sửa/vô hiệu hóa từ Admin
+* Xử lý: Hệ thống kiểm tra quyền hiện tại và cập nhật theo yêu cầu
+* Dữ liệu ra: Bản ghi cập nhật trong CSDL Người dùng và email thông báo (nếu vô hiệu hóa)
+
+
+. Kiểm tra quyền khi người dùng thực hiện hành động:
+
+* Dữ liệu vào: Yêu cầu thực hiện chức năng từ Người dùng
+* Xử lý: Module Clerk kiểm tra quyền hạn đối với chức năng được yêu cầu
+* Dữ liệu ra: Cho phép hoặc từ chối quyền thực hiện chức năng
+
+== Sơ đồ DFD mức 1: Phân quyền người dùng
+image::DFD1PQND.png[]

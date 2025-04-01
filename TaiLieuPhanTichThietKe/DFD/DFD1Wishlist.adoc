@@ -1,0 +1,76 @@
+= Sơ đồ DFD 1: Wishlist
+
+:sectnums:
+:icons: font
+:source-highlighter: coderay
+:toc:
+:imagesdir: .
+
+== Thực thể & Kho dữ liệu liên quan:
+
+    * Người dùng (Khách hàng) – Thực thể ngoài. Người dùng có thể thêm hoặc xóa sản phẩm khỏi danh sách yêu thích của mình, và đăng ký nhận thông báo khi sản phẩm trong wishlist có hàng trở lại (theo yêu cầu FR-005 của SRS​
+    file-ldc6pelwecy8ud6in9atiz
+    ).
+
+    * Hệ thống (Website) – Hệ thống website thương mại điện tử nội bộ. Hệ thống định kỳ kiểm tra trạng thái sản phẩm trong wishlist và chủ động gửi thông báo cho người dùng khi có thay đổi (sản phẩm có hàng lại).
+
+    * CSDL Wishlist – Cơ sở dữ liệu nội bộ lưu trữ danh sách yêu thích của từng người dùng (bao gồm mã người dùng và danh sách mã sản phẩm mà họ đã thêm vào wishlist).
+
+    * CSDL Sản phẩm – Cơ sở dữ liệu nội bộ chứa thông tin chi tiết về sản phẩm (tồn kho, tình trạng còn/hết hàng, giá, mô tả, v.v.). Hệ thống sử dụng để kiểm tra trạng thái sản phẩm trong wishlist.
+
+    * Hệ thống Thông báo – Thực thể ngoài phụ trách việc gửi thông báo đến người dùng. Đây có thể là dịch vụ email hoặc module gửi thông báo của website (ví dụ: dịch vụ email Resend được tích hợp để gửi email thông báo​
+    file-ldc6pelwecy8ud6in9atiz
+    ).
+
+== Các quy trình chính của Wishlist:
+
+1. Thêm sản phẩm vào Wishlist:
+
+    * Dữ liệu vào: Người dùng chọn một sản phẩm (ví dụ: mã sản phẩm hoặc ID) trên website và thực hiện yêu cầu “Thêm vào danh sách yêu thích”.
+
+    * Xử lý: Hệ thống tiếp nhận yêu cầu thêm wishlist. Trước tiên, hệ thống có thể kiểm tra sản phẩm đó có hợp lệ hay không (ví dụ: sản phẩm có tồn tại, còn kinh doanh không). Sau khi xác nhận, hệ thống ghi nhận sản phẩm vào CSDL Wishlist của người dùng.
+
+    * Dữ liệu ra:
+        ** Hệ thống cập nhật CSDL Wishlist – thêm sản phẩm vừa chọn vào danh sách yêu thích của người dùng.
+        ** Hệ thống gửi phản hồi cho Người dùng (cập nhật giao diện hoặc thông báo xác nhận rằng sản phẩm đã được thêm vào wishlist thành công).
+
+    * Luồng dữ liệu: Người dùng → [1. Thêm vào Wishlist]: Thông tin sản phẩm cần thêm. [1. Thêm vào Wishlist] → CSDL Wishlist: Lưu sản phẩm vào danh sách yêu thích của người dùng. [1. Thêm vào Wishlist] → Người dùng: Xác nhận đã thêm sản phẩm vào wishlist.
+
+2. Xóa sản phẩm khỏi Wishlist:
+
+    * Dữ liệu vào: Người dùng chọn một sản phẩm trong danh sách yêu thích của mình và thực hiện thao tác “Xóa khỏi wishlist”.
+
+    * Xử lý: Hệ thống (quy trình Xóa) nhận được yêu cầu, xác nhận sản phẩm đó hiện có trong wishlist của người dùng, sau đó truy cập CSDL Wishlist để loại bỏ sản phẩm này khỏi danh sách.
+
+    * Dữ liệu ra:
+        ** CSDL Wishlist được cập nhật – mục sản phẩm tương ứng bị xóa khỏi danh sách yêu thích của người dùng.
+        Hệ thống gửi phản hồi cho Người dùng (cập nhật giao diện danh sách yêu thích đã loại bỏ sản phẩm, hoặc thông báo xác nhận đã xóa thành công).
+
+    * Luồng dữ liệu: Người dùng → [2. Xóa khỏi Wishlist]: Yêu cầu xóa sản phẩm (định danh sản phẩm cần xóa). [2. Xóa khỏi Wishlist] → CSDL Wishlist: Cập nhật danh sách yêu thích (xóa sản phẩm). [2. Xóa khỏi Wishlist] → Người dùng: Thông báo/hiển thị kết quả đã xóa sản phẩm khỏi wishlist.
+
+3. Kiểm tra trạng thái sản phẩm (trong Wishlist):
+
+    * Dữ liệu vào: Đây là quy trình hệ thống thực hiện định kỳ (hoặc theo lịch) không có tương tác trực tiếp từ người dùng. Điểm kích hoạt có thể là một tác vụ chạy nền theo thời gian hoặc khi có sự kiện cập nhật tồn kho sản phẩm.
+
+    * Xử lý: Hệ thống truy xuất CSDL Wishlist để lấy danh sách tất cả các sản phẩm mà người dùng đã thêm vào wishlist (có thể theo dõi theo từng sản phẩm hoặc từng người dùng). Sau đó, đối với mỗi sản phẩm trong danh sách yêu thích, hệ thống kiểm tra CSDL Sản phẩm để lấy trạng thái hiện tại của sản phẩm đó (còn hàng hay hết hàng). Hệ thống so sánh với trạng thái trước đó trong wishlist: nếu phát hiện sản phẩm trước đây hết hàng mà nay có hàng trở lại, hệ thống đánh dấu sản phẩm đó cần thông báo cho người dùng quan tâm.
+
+    * Dữ liệu ra:
+        ** Kết quả kiểm tra trạng thái cho biết sản phẩm nào trong wishlist có hàng trở lại. Những thông tin này (ví dụ: mã sản phẩm và danh sách người dùng đã thêm sản phẩm đó) được chuyển tới quy trình gửi thông báo.
+        (Nếu không có thay đổi trạng thái hoặc sản phẩm vẫn hết hàng, không có dữ liệu ra đáng kể ngoài việc lưu lại trạng thái để lần kiểm tra sau so sánh).
+
+    * Luồng dữ liệu: [3. Kiểm tra trạng thái] → CSDL Wishlist: Đọc danh sách sản phẩm trong wishlist (toàn bộ hoặc theo từng user). [3. Kiểm tra trạng thái] → CSDL Sản phẩm: Kiểm tra tình trạng tồn kho của các sản phẩm này. [3. Kiểm tra trạng thái] → [4. Gửi thông báo]: Đối với sản phẩm chuyển từ hết hàng sang có hàng, gửi thông tin sản phẩm và người dùng liên quan sang quy trình thông báo.
+
+4. Gửi thông báo khi sản phẩm có hàng:
+
+    * Dữ liệu vào: Danh sách các sản phẩm vừa có hàng trở lại kèm thông tin những người dùng đã đăng ký wishlist cho các sản phẩm đó (đầu vào này do quy trình 3 cung cấp).
+
+    * Xử lý: Với mỗi sản phẩm thỏa điều kiện cần thông báo, hệ thống chuẩn bị nội dung thông báo (ví dụ: “Sản phẩm X hiện đã có hàng lại”) và lựa chọn kênh thông báo. Hệ thống tương tác với Hệ thống Thông báo (ví dụ gửi email qua dịch vụ Resend hoặc tạo thông báo trên trang web) để chuyển tiếp thông báo đến đúng người dùng.
+
+    * Dữ liệu ra:
+        ** Thông tin thông báo được gửi tới Hệ thống Thông báo (bao gồm nội dung thông báo, địa chỉ email hoặc ID người dùng nhận thông báo).
+        ** Người dùng nhận được thông báo về sản phẩm có hàng (qua email hoặc trực tiếp trên website, tùy theo kênh thông báo được sử dụng).
+
+    * Luồng dữ liệu: [4. Gửi Thông báo] → Hệ thống Thông báo: Gửi nội dung và thông tin người nhận thông báo (email, ID người dùng...). Hệ thống Thông báo → Người dùng: Gửi email hoặc hiển thị thông báo trên website cho người dùng về sản phẩm trong wishlist đã có hàng trở lại.
+
+== Sơ đồ DFD mức 1: Wishlist
+image::DFD1WishList.png[Sơ đồ DFD mức 1: Wishlist]

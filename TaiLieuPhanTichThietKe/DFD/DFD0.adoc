@@ -1,0 +1,41 @@
+:imagedir: .
+
+= Sơ đồ DFD mức 0 cho hệ thống bán giày trực tuyến
+:sectnums:
+
+:toc:
+
+Sơ đồ DFD mức 0 (sơ đồ ngữ cảnh) mô tả hệ thống Website bán giày trực tuyến như một thực thể xử lý trung tâm, cùng với các tác nhân bên ngoài (Người dùng, Quản trị viên, Shipper) và luồng dữ liệu chính giữa họ. Hệ thống cho phép khách hàng duyệt, tìm kiếm sản phẩm, đặt hàng, quản lý đơn hàng và thanh toán trực tuyến​. Các tác nhân bên ngoài tương tác với hệ thống thông qua các chức năng chính được liệt kê dưới đây.
+
+== Các tác nhân và vai trò chính
+* Người dùng (Khách hàng): Là người mua giày trên website. Người dùng có thể tìm kiếm sản phẩm, thêm/xóa sản phẩm vào giỏ hàng, đặt hàng và thanh toán trực tuyến​. Sau khi mua, họ cũng có thể kiểm tra trạng thái các đơn hàng của mình (đã mua, đã hủy, đã giao)​.
+
+* Quản trị viên (Admin): Là người quản lý hệ thống. Admin có thể quản lý sản phẩm (thêm, sửa, xóa sản phẩm)​, quản lý người dùng (tạo tài khoản, phân quyền cho người dùng)​, quản lý đơn hàng (xem và cập nhật trạng thái các đơn hàng)​, đồng thời xem thống kê doanh thu của hệ thống (ví dụ: xem biểu đồ lợi nhuận theo loại giày hoặc toàn bộ cửa hàng)​.
+
+* Shipper (Đơn vị giao hàng): Là người vận chuyển giày đến khách hàng. Shipper nhận thông tin đơn hàng cần giao (thông tin giao hàng, địa chỉ khách hàng, v.v.) từ hệ thống và xác nhận khi giao hàng thành công cho khách hàng​.
+
+(Lưu ý: Hệ thống thanh toán bên thứ ba như VNPay, Stripe có thể được xem là một tác nhân bên ngoài khác mà hệ thống tương tác để xử lý thanh toán​. Tuy nhiên, trong phạm vi sơ đồ mức 0 này, vai trò đó được tích hợp trong chức năng Thanh toán của hệ thống chính.)
+
+== Các luồng dữ liệu chính giữa hệ thống và tác nhân
+
+. Người dùng - Hệ thống
+* Yêu cầu tìm kiếm sản phẩm: Người dùng gửi từ khóa hoặc bộ lọc tìm kiếm đến hệ thống (luồng dữ liệu Thông tin tìm kiếm). Hệ thống tra cứu sản phẩm và trả về Kết quả tìm kiếm (danh sách sản phẩm phù hợp) cho người dùng​.
+* Quản lý giỏ hàng: Người dùng gửi các thao tác giỏ hàng đến hệ thống, ví dụ: Thêm sản phẩm vào giỏ hoặc Xóa sản phẩm khỏi giỏ (luồng dữ liệu Cập nhật giỏ hàng). Hệ thống cập nhật trạng thái giỏ hàng và gửi lại cho người dùng Thông tin giỏ hàng đã cập nhật (danh sách sản phẩm trong giỏ hiện tại)​.
+
+* Đặt hàng & Thanh toán: Khi người dùng tiến hành đặt hàng, họ gửi tới hệ thống Thông tin đơn hàng (bao gồm thông tin sản phẩm trong giỏ, địa chỉ giao hàng) và Thông tin thanh toán (ví dụ: chi tiết thẻ tín dụng hoặc lựa chọn ví điện tử). Hệ thống xử lý thanh toán (liên kết với cổng thanh toán bên thứ ba)​, sau đó lưu thông tin đơn hàng. Kết quả, hệ thống gửi lại cho người dùng Xác nhận đơn hàng (bao gồm mã đơn hàng, chi tiết đơn hàng và xác nhận thanh toán thành công). Ngoài ra, người dùng có thể truy vấn Trạng thái đơn hàng sau khi đặt hàng, hệ thống sẽ cung cấp thông tin về tình trạng hiện tại của đơn hàng (đang xử lý, đã giao, đã hủy, ...)​.
+
+. Quản trị viên - Hệ thống
+
+* Quản lý sản phẩm: Admin gửi vào hệ thống Thông tin sản phẩm để thêm mới hoặc cập nhật (ví dụ: tên giày, mô tả, giá, số lượng tồn kho). Hệ thống xử lý yêu cầu này (cập nhật cơ sở dữ liệu sản phẩm) và phản hồi lại Kết quả cập nhật sản phẩm cho Admin, chẳng hạn thông báo thành công hoặc danh sách sản phẩm cập nhật​.
+
+* Quản lý người dùng: Admin gửi Thông tin tài khoản người dùng hoặc thiết lập quyền hạn vào hệ thống khi tạo mới hoặc chỉnh sửa tài khoản người dùng. Hệ thống cập nhật thông tin tài khoản/ quyền và gửi lại Xác nhận quản lý người dùng (ví dụ: thông báo tạo tài khoản thành công hoặc danh sách người dùng được cập nhật).
+* Quản lý đơn hàng: Admin yêu cầu Danh sách/chi tiết đơn hàng từ hệ thống (ví dụ: để theo dõi các đơn hàng mới, đơn hàng đã giao). Hệ thống gửi lại Thông tin đơn hàng (danh sách đơn hàng, chi tiết từng đơn) để Admin theo dõi hoặc cập nhật trạng thái. Ngoài ra, nếu Admin cập nhật trạng thái đơn hàng (ví dụ đánh dấu đã xử lý, đã hủy), hệ thống sẽ ghi nhận và phản hồi Xác nhận cập nhật đơn hàng​.
+
+* Xem thống kê doanh thu: Admin gửi yêu cầu Báo cáo thống kê (theo khoảng thời gian, theo loại sản phẩm, v.v.). Hệ thống tổng hợp dữ liệu kinh doanh và trả về Báo cáo doanh thu cho Admin dưới dạng bảng số liệu hoặc biểu đồ. Ví dụ: Admin có thể xem biểu đồ lợi nhuận của một loại giày cụ thể hoặc toàn bộ website trong một khoảng thời gian nhất định​. (Luồng dữ liệu: Yêu cầu thống kê - Báo cáo/biểu đồ thống kê).
+
+. Shipper - Hệ thống
+* Nhận thông tin giao hàng: Khi có đơn hàng mới cần giao, hệ thống gửi đến Shipper Thông tin giao hàng bao gồm mã đơn hàng, địa chỉ người nhận, thông tin liên lạc và chi tiết các mặt hàng cần giao. (Luồng dữ liệu: Hệ thống - Shipper).
+* Xác nhận giao hàng: Sau khi đơn hàng được giao thành công cho khách, Shipper gửi Xác nhận giao hàng thành công về cho hệ thống. Hệ thống cập nhật trạng thái đơn hàng thành "Đã giao" và có thể gửi thông báo hoàn tất đơn hàng cho người dùng. (Luồng dữ liệu: Shipper - Hệ thống).
+
+== Sơ đồ DFD mức 0
+image::DFD0.png[DFD mức 0]

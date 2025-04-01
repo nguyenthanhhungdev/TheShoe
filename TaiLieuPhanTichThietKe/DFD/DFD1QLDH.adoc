@@ -1,0 +1,58 @@
+= Sơ đồ DFD mức 1 Quản lý đơn hàng
+:sectnums:
+:icons: font
+:source-highlighter: coderay
+:imagesdir: .
+:toc:
+
+== Thực thể và Kho dữ liệu liên quan:
+
+* Người dùng (Khách hàng) – Thực thể bên ngoài gửi yêu cầu đặt đơn hàng và truy vấn trạng thái đơn hàng của mình. (Theo SRS FR-007, người dùng có thể kiểm tra trạng thái các đơn hàng đã mua/hủy/giao​
+).
+
+* Quản trị viên (Admin) – Thực thể quản trị, có quyền cập nhật trạng thái đơn hàng trên hệ thống​
+(ví dụ chuyển đơn từ “Chờ xử lý” sang “Đang giao” hoặc “Đã hủy”).
+
+* Shipper – Đơn vị giao hàng, xác nhận khi đơn đã được giao thành công​.
+
+* CSDL Đơn hàng – Kho dữ liệu nội bộ lưu trữ thông tin chi tiết về các đơn hàng: mã đơn, sản phẩm, số lượng, địa chỉ, phương thức thanh toán, trạng thái đơn hàng, và lịch sử cập nhật trạng thái.
+
+== Các quy trình chính
+
+. Tạo Đơn Hàng:
+
+    * Mô tả: Người dùng đặt hàng trên website. Hệ thống tiếp nhận thông tin đơn hàng và khởi tạo một đơn hàng mới trong cơ sở dữ liệu với trạng thái ban đầu là “Chờ xử lý”.
+    * Dòng dữ liệu:
+        Người dùng → [1. Tạo Đơn Hàng]: Gửi thông tin đơn hàng (danh sách sản phẩm, số lượng, địa chỉ giao hàng, phương thức thanh toán, v.v.).
+        [1. Tạo Đơn Hàng] → CSDL Đơn hàng: Lưu đơn hàng mới vào CSDL, gán trạng thái ban đầu “Chờ xử lý”.
+        [1. Tạo Đơn Hàng] → Người dùng: Gửi lại xác nhận đặt hàng (mã đơn hàng và thông tin xác nhận) cho người dùng sau khi lưu thành công.
+
+. Cập Nhật Trạng Thái Đơn Hàng:
+
+    * Mô tả: Quản trị viên xem danh sách đơn hàng hiện có và cập nhật trạng thái của một đơn hàng (ví dụ chuyển từ “Chờ xử lý” sang “Đang xử lý” hoặc “Đang giao”, “Đã hủy”, v.v.). Hệ thống ghi nhận thay đổi này vào CSDL.
+    * Dòng dữ liệu:
+        Admin → [2. Cập Nhật Trạng Thái]: Gửi yêu cầu cập nhật trạng thái (chọn mã đơn hàng và trạng thái mới cần chuyển đổi).
+        [2. Cập Nhật Trạng Thái] → CSDL Đơn hàng: Thực hiện cập nhật trạng thái đơn hàng trong CSDL (thay đổi trạng thái hiện tại của đơn tương ứng).
+        [2. Cập Nhật Trạng Thái] → Admin: Gửi phản hồi xác nhận cập nhật thành công (hoặc hiển thị lại danh sách đơn hàng sau khi cập nhật để quản trị viên thấy trạng thái mới).
+        (Trong trường hợp cần xem chi tiết đơn hàng trước khi cập nhật: Admin có thể yêu cầu xem thông tin đơn hàng → hệ thống đọc dữ liệu đơn hàng từ CSDL và hiển thị cho Admin.)
+
+. Xác Nhận Giao Hàng:
+
+    * Mô tả: Sau khi hoàn tất việc giao hàng thực tế, shipper (hoặc bộ phận giao nhận) thông báo đơn hàng đã được giao thành công. Hệ thống tiếp nhận thông báo này và cập nhật trạng thái đơn hàng trong CSDL thành “Đã giao”, đồng thời thông báo cho khách hàng.
+    * Dòng dữ liệu:
+        Shipper → [3. Xác Nhận Giao Hàng]: Gửi thông tin xác nhận giao hàng (mã đơn hàng đã giao thành công).
+        [3. Xác Nhận Giao Hàng] → CSDL Đơn hàng: Cập nhật trạng thái đơn hàng tương ứng thành “Đã giao” trong CSDL. (Hệ thống cũng có thể ghi lại thời gian giao hàng để lưu lịch sử cập nhật trạng thái đơn).
+        [3. Xác Nhận Giao Hàng] → Người dùng: Gửi thông báo giao hàng thành công cho khách hàng (ví dụ: đơn hàng đổi sang trạng thái “Đã giao”). Người dùng nhận được cập nhật về trạng thái đơn hàng của mình.
+
+. Người Dùng Kiểm Tra Đơn Hàng:
+
+    * Mô tả: Người dùng truy vấn trạng thái và chi tiết đơn hàng của mình bất kỳ lúc nào (để biết đơn hàng đang ở giai đoạn nào: Chờ xử lý, Đang xử lý, Đang giao, Đã giao hay Đã hủy). Hệ thống sẽ lấy thông tin từ CSDL và trả kết quả cho người dùng.
+    * Dòng dữ liệu:
+        Người dùng → [4. Kiểm Tra Đơn Hàng]: Gửi yêu cầu tra cứu trạng thái đơn hàng (thông qua mã đơn hàng hoặc tài khoản người dùng).
+        [4. Kiểm Tra Đơn Hàng] → CSDL Đơn hàng: Truy vấn thông tin đơn hàng trong CSDL (lấy trạng thái hiện tại và các chi tiết liên quan).
+        CSDL Đơn hàng → [4. Kiểm Tra Đơn Hàng]: Trả về dữ liệu trạng thái đơn hàng (ví dụ: trạng thái hiện tại và lịch sử cập nhật của đơn đó).
+        [4. Kiểm Tra Đơn Hàng] → Người dùng: Gửi kết quả truy vấn cho người dùng (hiển thị trạng thái hiện tại của đơn hàng và thông tin chi tiết mà người dùng yêu cầu).
+
+== Sơ đồ DFD mức 1: Quản lý đơn hàng
+
+image::DFD1QLDH.png[Sơ đồ DFD mức 1: Quản lý đơn hàng]

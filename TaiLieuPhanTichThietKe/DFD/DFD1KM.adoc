@@ -1,0 +1,52 @@
+Phân tích DFD mức 1 cho Quản lý khuyến mãi/giảm giá
+1. Thực thể và Kho dữ liệu liên quan
+Thực thể bên ngoài
+
+Admin: Người quản lý, có quyền tạo, chỉnh sửa và xóa các chương trình khuyến mãi
+Khách hàng: Người dùng website, xem và áp dụng khuyến mãi khi mua hàng
+
+Kho dữ liệu
+
+CSDL Khuyến mãi: Lưu trữ thông tin về các chương trình khuyến mãi, mã giảm giá
+CSDL Sản phẩm: Chứa thông tin sản phẩm, liên kết với các khuyến mãi
+CSDL Đơn hàng: Lưu trữ thông tin đơn hàng và khuyến mãi được áp dụng
+CSDL Người dùng: Lưu thông tin người dùng để áp dụng khuyến mãi cho các nhóm khách hàng cụ thể
+
+2. Các quy trình chính
+Tạo chương trình khuyến mãi
+
+Dữ liệu vào: Admin nhập thông tin chương trình khuyến mãi (tên, loại, giá trị giảm, điều kiện áp dụng, thời gian bắt đầu/kết thúc)
+Xử lý: Hệ thống kiểm tra tính hợp lệ của thông tin, tạo mã khuyến mãi nếu cần
+Dữ liệu ra: Lưu chương trình khuyến mãi vào CSDL Khuyến mãi, liên kết với sản phẩm/danh mục nếu cần
+
+Chỉnh sửa khuyến mãi
+
+Dữ liệu vào: Admin chọn chương trình khuyến mãi và cập nhật thông tin
+Xử lý: Hệ thống kiểm tra tính hợp lệ, xác minh chương trình khuyến mãi tồn tại
+Dữ liệu ra: Cập nhật thông tin khuyến mãi trong CSDL Khuyến mãi
+
+Xóa khuyến mãi
+
+Dữ liệu vào: Admin chọn chương trình khuyến mãi cần xóa
+Xử lý: Hệ thống kiểm tra xem chương trình có đang được sử dụng không
+Dữ liệu ra: Đánh dấu chương trình là không còn hoạt động hoặc xóa khỏi CSDL Khuyến mãi
+
+Hiển thị khuyến mãi cho khách hàng
+
+Dữ liệu vào: Thông tin về sản phẩm/danh mục mà khách hàng đang xem
+Xử lý: Hệ thống truy vấn CSDL Khuyến mãi để tìm các khuyến mãi đang hoạt động và áp dụng được
+Dữ liệu ra: Hiển thị thông tin khuyến mãi cho khách hàng
+
+Áp dụng khuyến mãi vào đơn hàng
+
+Dữ liệu vào: Khách hàng nhập mã giảm giá hoặc chọn khuyến mãi
+Xử lý: Hệ thống kiểm tra điều kiện áp dụng (giá trị đơn hàng tối thiểu, thời gian, sản phẩm áp dụng)
+Dữ liệu ra: Cập nhật giá trị đơn hàng sau khi áp dụng khuyến mãi, lưu thông tin vào CSDL Đơn hàng
+
+Quản lý khuyến mãi tự động
+
+Dữ liệu vào: Thông tin từ hệ thống về thời gian, trạng thái khuyến mãi
+Xử lý: Hệ thống tự động kiểm tra và cập nhật trạng thái khuyến mãi (bắt đầu, kết thúc)
+Dữ liệu ra: Cập nhật trạng thái khuyến mãi trong CSDL Khuyến mãi
+
+3. Sơ đồ DFD mức 1 cho Quản lý khuyến mãi/giảm giá

@@ -1,0 +1,66 @@
+:imagesdir: .
+
+= Sơ đồ DFD Mức 1 cho Chức năng Đặt Hàng và Thanh Toán 
+:sectnums:
+:toc:
+
+Sơ đồ DFD mức 1 dưới đây mô tả cách hệ thống website bán giày trực tuyến xử lý chức năng Đặt hàng và Thanh toán, bao gồm các thực thể bên ngoài liên quan, các kho dữ liệu, và 4 quy trình chính: Nhận đơn hàng, Xác thực thanh toán, Xử lý đơn hàng, và Thông báo đến các bên liên quan. Mỗi quy trình được mô tả kèm theo luồng dữ liệu chính giữa người dùng, hệ thống, cổng thanh toán và các bên liên quan.
+
+== Các Thực Thể Bên Ngoài và Kho Dữ Liệu Liên Quan
+
+=== Các thực thể
+
+* Khách hàng (Người dùng): Thực thể bên ngoài khởi tạo việc đặt hàng. Khách hàng gửi thông tin giỏ hàng và lựa chọn phương thức thanh toán vào hệ thống, đồng thời nhận thông báo xác nhận hoặc thông báo lỗi từ hệ thống sau khi đơn hàng được xử lý.
+
+* Cổng thanh toán (ví dụ: VNPay, Stripe): Hệ thống thanh toán bên thứ ba tiếp nhận thông tin giao dịch do website gửi đến và phản hồi kết quả thanh toán (thành công hoặc thất bại)​
+
+* Shipper (Đơn vị vận chuyển): Thực thể nhận thông tin đơn hàng mới từ hệ thống (sau khi thanh toán thành công) để tiến hành giao hàng cho khách mua.
+
+* Quản trị viên (Admin): Thực thể quản lý nội bộ, quan tâm đến dữ liệu doanh thu và tình hình đơn hàng. Admin không tham gia trực tiếp vào quá trình đặt hàng nhưng sẽ truy cập dữ liệu doanh thu/đơn hàng được hệ thống cập nhật để theo dõi báo cáo kinh doanh.
+
+=== Kho dữ liệu
+
+* CSDL Đơn Hàng: Kho dữ liệu nội bộ của hệ thống, lưu trữ thông tin chi tiết các đơn hàng (sản phẩm, số lượng, khách hàng, trạng thái thanh toán, v.v.).
+
+* CSDL Doanh Thu: Kho dữ liệu lưu thông tin giao dịch và doanh thu bán hàng, phục vụ cho việc thống kê và báo cáo doanh số cho quản trị viên
+
+== Các Quy Trình Chính (Mức 1) và Luồng Dữ Liệu
+
+. Nhận đơn hàng từ người dùng
+* Luồng dữ liệu vào: Thông tin giỏ hàng (danh sách sản phẩm, số lượng, đơn giá) được gửi từ Khách hàng vào hệ thống.
+
+* Hệ thống (quy trình "Nhận đơn hàng") tiếp nhận dữ liệu giỏ hàng và tiến hành xác minh thông tin đơn hàng: kiểm tra tính hợp lệ và đầy đủ của dữ liệu (ví dụ: các trường thông tin bắt buộc, số lượng hợp lệ, sản phẩm còn hàng, địa chỉ giao hàng hợp lệ, v.v.).
+
+* Nếu dữ liệu đơn hàng hợp lệ, hệ thống tạo một đơn hàng tạm (với trạng thái ban đầu như "chờ thanh toán") và chuyển thông tin đơn hàng đã xác minh sang bước tiếp theo để thực hiện thanh toán.
+
+. Xác thực thanh toán
+
+* Luồng dữ liệu vào: Thông tin thanh toán được gửi từ Khách hàng vào hệ thống, bao gồm phương thức thanh toán mà người dùng lựa chọn (ví dụ: VNPay, Stripe, tiền mặt, thẻ tín dụng, ví điện tử, v.v.)​ cùng các chi tiết liên quan (thông tin thẻ, tài khoản ví điện tử,...).
+
+* Hệ thống (quy trình "Xác thực thanh toán") gửi thông tin giao dịch (mã đơn hàng, số tiền, thông tin thanh toán khách hàng cung cấp) tới Cổng thanh toán tương ứng để xử lý​. (Ví dụ: hệ thống gọi API của VNPay/Stripe kèm theo số tiền và mã đơn hàng để yêu cầu thanh toán).
+
+* Cổng thanh toán xử lý giao dịch và gửi lại kết quả thanh toán cho hệ thống. Kết quả bao gồm trạng thái giao dịch (thành công hoặc thất bại) và có thể kèm theo mã giao dịch hoặc thông báo lỗi chi tiết (nếu thất bại).
+
+. Xử lý đơn hàng
+
+* Luồng dữ liệu vào: Kết quả thanh toán từ bước 2 (trạng thái thành công/thất bại cùng thông tin giao dịch) được chuyển vào quy trình "Xử lý đơn hàng" của hệ thống.
+
+* Nếu thanh toán thành công: hệ thống cập nhật trạng thái đơn hàng trong CSDL Đơn Hàng từ "chờ thanh toán" thành "đã thanh toán/xác nhận". Điều này xác nhận đơn hàng đã được thanh toán và sẵn sàng để xử lý các bước tiếp theo (ví dụ: đóng gói, giao hàng).
+
+* Nếu thanh toán thất bại: hệ thống không cập nhật trạng thái đơn hàng (hoặc ghi nhận đơn hàng ở trạng thái "thanh toán thất bại/chưa thanh toán") và tạo một thông báo lỗi thanh toán gửi cho Khách hàng. Thông báo này cho biết giao dịch không thành công và có thể yêu cầu người dùng kiểm tra lại hoặc thử phương thức thanh toán khác.
+
+* Sau khi xử lý kết quả thanh toán, hệ thống sẽ chuyển tiếp thông tin phù hợp sang bước thông báo: với giao dịch thành công, thông tin đơn hàng đã xác nhận được đưa tới quy trình thông báo cho các bên liên quan; với giao dịch thất bại, thông báo lỗi được gửi trả cho khách hàng (kết thúc quy trình đặt hàng trong trường hợp này).
+
+. Thông báo đến các bên liên quan 
+
+* Đến Khách hàng: Nếu đơn hàng thanh toán thành công, hệ thống gửi xác nhận đơn hàng cho Khách hàng. Thông tin xác nhận bao gồm chi tiết đơn hàng (sản phẩm, số lượng, tổng tiền) và xác nhận thanh toán thành công. Việc này có thể được thực hiện qua email xác nhận hoặc hiển thị thông báo xác nhận trên giao diện website.
+
+* Đến Shipper: Hệ thống gửi thông báo đơn hàng mới tới Shipper (đơn vị vận chuyển) để chuẩn bị lấy hàng và giao cho khách. Thông tin gửi bao gồm mã đơn hàng, địa chỉ giao hàng, thông tin liên lạc của khách và danh sách sản phẩm cần giao. Shipper sử dụng dữ liệu này để sắp xếp việc giao nhận hàng hóa.
+
+* Đến Admin: Hệ thống cập nhật dữ liệu doanh thu của đơn hàng vào CSDL Doanh Thu. Thông tin này được lưu lại để phục vụ việc thống kê doanh số. Quản trị viên (Admin) sau đó có thể truy xuất dữ liệu được cập nhật để xem báo cáo doanh thu hoặc hiệu suất bán hàng (ví dụ: xem biểu đồ lợi nhuận theo từng loại sản phẩm hoặc tổng quan toàn website)​.
+
+* Thông tin bổ sung: Ngoài các luồng thông báo trên, hệ thống cũng có thể ghi nhận log hoặc lịch sử giao dịch cho mục đích kiểm tra sau này. Quản trị viên có thể không nhận thông báo ngay lập tức cho từng đơn hàng, nhưng họ có thể truy cập hệ thống quản trị để xem trạng thái đơn hàng và thông tin doanh thu bất cứ lúc nào sau khi dữ liệu được cập nhật.
+
+== Sơ đồ DFD mức 1
+
+image::DFD1.png[DFD mức 1]

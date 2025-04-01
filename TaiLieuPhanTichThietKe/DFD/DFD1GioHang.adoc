@@ -1,0 +1,61 @@
+:imagedir: .
+
+= Sơ đồ DFD Mức 1 – Chức năng Quản lý Giỏ hàng
+:sectnums:
+:toc:
+
+Sơ đồ DFD mức 1 cho Quản lý Giỏ hàng thể hiện cách chức năng này được phân rã thành các quy trình con và luồng dữ liệu chi tiết giữa Người dùng (khách hàng), Hệ thống và các Kho dữ liệu liên quan. Trong đó, Người dùng là thực thể ngoài tương tác với hệ thống; CSDL Sản phẩm và CSDL Giỏ hàng là các kho dữ liệu nội bộ được hệ thống sử dụng để lưu trữ và kiểm tra thông tin. Dưới đây là các quy trình chính của chức năng Quản lý Giỏ hàng ở mức 1 và mô tả luồng dữ liệu giữa chúng:
+
+== Thực thể & Kho dữ liệu liên quan
+
+=== Thực thể
+
+* Người dùng (Khách hàng) – Thực thể ngoài, thực hiện các thao tác thêm/xóa/cập nhật sản phẩm và xem giỏ hàng.
+
+=== Kho dữ liệu
+
+* CSDL Sản phẩm – Kho dữ liệu chứa thông tin chi tiết về sản phẩm (giá, số lượng tồn kho, mô tả, v.v.), phục vụ việc kiểm tra tính hợp lệ (còn hàng, giá đúng) khi người dùng thao tác với giỏ hàng.
+
+* CSDL Giỏ hàng – Kho dữ liệu lưu trữ các sản phẩm mà người dùng đã thêm vào giỏ (bao gồm mã sản phẩm, số lượng, thông tin liên quan khác).
+
+== Các quy trình chính của Quản lý Giỏ hàng
+
+. Thêm sản phẩm vào giỏ hàng:
+
+* Dữ liệu vào: Người dùng chọn sản phẩm (ví dụ: mã sản phẩm) và số lượng muốn thêm, sau đó gửi yêu cầu “Thêm vào giỏ”.
+
+* Xử lý: Hệ thống (quy trình Thêm vào giỏ) nhận yêu cầu và gửi thông tin sản phẩm cùng số lượng đến CSDL Sản phẩm để kiểm tra tính hợp lệ. Cụ thể, hệ thống kiểm tra xem sản phẩm có còn hàng không, giá hiện tại và các thông tin khác có hợp lệ không.
+
+* Luồng dữ liệu: CSDL Sản phẩm phản hồi kết quả kiểm tra (ví dụ: xác nhận sản phẩm còn hàng và thông tin hợp lệ) về cho quy trình. Nếu hợp lệ, hệ thống sẽ cập nhật CSDL Giỏ hàng – thêm một mục (sản phẩm + số lượng) vào giỏ hàng của người dùng trong cơ sở dữ liệu.
+
+* Dữ liệu ra: Hệ thống gửi phản hồi cho Người dùng dưới dạng cập nhật giao diện giỏ hàng (danh sách sản phẩm trong giỏ được bổ sung sản phẩm vừa thêm) hoặc thông báo xác nhận rằng sản phẩm đã được thêm thành công.
+. Xóa sản phẩm khỏi giỏ hàng:
+
+* Dữ liệu vào: Người dùng chọn một sản phẩm trong giỏ hàng và thực hiện thao tác “Xóa” sản phẩm đó.
+Xử lý: Hệ thống (quy trình Xóa sản phẩm) nhận yêu cầu, xác nhận lại thao tác xóa (có thể yêu cầu người dùng xác nhận nếu cần). Sau khi xác nhận, hệ thống truy vấn CSDL Giỏ hàng để xác định mục tương ứng và tiến hành xóa sản phẩm đó khỏi giỏ.
+* Luồng dữ liệu & Dữ liệu ra: CSDL Giỏ hàng được cập nhật (mục sản phẩm bị xóa sẽ được loại bỏ). Sau khi cập nhật thành công, hệ thống gửi dữ liệu giỏ hàng đã thay đổi về Người dùng (danh sách sản phẩm mới sau khi xóa) để hiển thị, đảm bảo sản phẩm đã được gỡ bỏ khỏi giỏ hàng của người dùng.
+
+. Cập nhật số lượng sản phẩm trong giỏ:
+
+* Dữ liệu vào: Người dùng thay đổi số lượng của một sản phẩm đã có trong giỏ (ví dụ: tăng từ 1 lên 2 đôi giày) và gửi yêu cầu “Cập nhật số lượng”.
+* Xử lý: Hệ thống (quy trình Cập nhật số lượng) tiếp nhận yêu cầu, trước tiên truy vấn CSDL Sản phẩm để kiểm tra điều kiện hợp lệ cho số lượng mới. Điều này bao gồm việc kiểm tra xem số lượng yêu cầu có vượt quá số lượng tồn kho hay không (và các ràng buộc khác như số lượng tối đa cho phép).
+* Luồng dữ liệu: CSDL Sản phẩm trả về thông tin về tồn kho hiện có. Nếu số lượng mới hợp lệ (không vượt quá tồn kho, v.v.), hệ thống sẽ cập nhật CSDL Giỏ hàng với số lượng mới cho sản phẩm đó.
+* Dữ liệu ra: Hệ thống gửi lại kết quả cập nhật cho Người dùng – thường dưới dạng giao diện giỏ hàng được làm mới, hiển thị số lượng mới và tính toán lại giá trị (nếu có thay đổi về tổng tiền) của sản phẩm trong giỏ hàng.
+
+. Hiển thị giỏ hàng hiện tại:
+
+* Dữ liệu vào: Khi người dùng truy cập trang “Giỏ hàng” hoặc yêu cầu xem giỏ, hệ thống kích hoạt quy trình lấy thông tin giỏ hàng.
+
+* Xử lý & Luồng dữ liệu: Hệ thống truy vấn CSDL Giỏ hàng để lấy danh sách tất cả sản phẩm mà người dùng đã thêm. Đối với mỗi sản phẩm trong giỏ, hệ thống có thể tham chiếu tới CSDL Sản phẩm để lấy thông tin chi tiết (như tên sản phẩm, hình ảnh, giá) nhằm hiển thị đầy đủ cho người dùng. Hệ thống tổng hợp dữ liệu (danh sách sản phẩm + chi tiết) để chuẩn bị hiển thị.
+
+* Dữ liệu ra: Thông tin Giỏ hàng hiện tại (bao gồm từng sản phẩm với tên, giá, số lượng và tổng tiền tạm tính) được gửi đến Người dùng và hiển thị trên giao diện trang giỏ hàng. Người dùng sẽ thấy toàn bộ sản phẩm đã thêm và thông tin liên quan.
+
+. Xóa giỏ hàng khi đơn hàng được đặt hoặc hủy:
+
+* Dữ liệu vào (Sự kiện kích hoạt): Quy trình này được kích hoạt khi Người dùng hoàn tất đặt hàng/thanh toán hoặc khi người dùng quyết định hủy bỏ giỏ hàng/đơn hàng. Cụ thể, sau khi thanh toán thành công đơn hàng, hệ thống sẽ xử lý việc dọn sạch giỏ; tương tự, nếu người dùng hủy đơn hàng hoặc “dọn” giỏ hàng, hệ thống cũng sẽ kích hoạt quy trình xóa.
+* Xử lý & Luồng dữ liệu: Hệ thống nhận tín hiệu “Đơn hàng đã đặt thành công” hoặc “Hủy giỏ hàng”. Tiếp đó, hệ thống truy cập CSDL Giỏ hàng và xóa tất cả các mục liên quan đến giỏ hàng của người dùng (loại bỏ toàn bộ sản phẩm trong giỏ của user đó). Điều này đảm bảo giỏ hàng được làm trống sau khi đơn hàng đã được xử lý hoặc người dùng không còn nhu cầu mua các sản phẩm đó nữa. (Trong trường hợp hủy, hệ thống có thể đồng thời báo cho CSDL Sản phẩm để cập nhật lại tồn kho, nhưng chi tiết này có thể thuộc chức năng quản lý kho).
+* Dữ liệu ra: Kết quả là CSDL Giỏ hàng không còn dữ liệu về các sản phẩm trước đó của người dùng. Hệ thống có thể phản hồi lại Người dùng bằng cách hiển thị giỏ hàng trống hoặc thông báo rằng giỏ hàng đã được xóa. Nếu là sau khi đặt hàng, người dùng có thể nhận được xác nhận đơn hàng và giỏ hàng của họ sẽ bắt đầu lại trống cho lần mua tiếp theo.
+
+== Sơ đồ DFD mức 1
+
+image:DFD1GH.png[Sơ đồ DFD mức 1]

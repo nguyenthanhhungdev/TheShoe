@@ -1,0 +1,114 @@
+
+# Quy trình mua hàng tổng hợp (đã đơn giản hóa)
+:toc:
+
+## 1. Mua hàng từ trang sản phẩm
+. **Xem thông tin sản phẩm**: Người dùng truy cập trang chi tiết sản phẩm
+. **Chọn thông tin mua hàng**: Người dùng chọn kích cỡ, số lượng và các tùy chọn khác
+. **Mua ngay**: Người dùng chọn nút "Mua ngay" để đi thẳng đến quá trình thanh toán
+. **Kiểm tra trạng thái đăng nhập**:
+
+   * **Nếu đã đăng nhập**:
+   ** Hệ thống truy vấn CSDL Người dùng để lấy thông tin địa chỉ đã lưu
+   ** Nếu có địa chỉ: Hiển thị danh sách địa chỉ đã lưu để chọn hoặc tùy chọn thêm địa chỉ mới
+   ** Nếu không có địa chỉ: Hiển thị form nhập địa chỉ mới với tùy chọn lưu lại
+
+   * **Nếu chưa đăng nhập**:
+   ** Hiển thị form trống để nhập thông tin
+   ** Người dùng điền và xác nhận thông tin cần thiết
+
+
+. **Nhập mã giảm giá** (tùy chọn):
+* Hiển thị trường nhập mã giảm giá
+* Người dùng có thể nhập mã giảm giá (nếu có)
+* Hệ thống kiểm tra tính hợp lệ của mã và áp dụng giảm giá nếu hợp lệ
+. **Tính toán giá cuối cùng**
+* Tính toán giá sau khi đã áp dụng mã giảm giá, chương trình khuyến mãi (nếu có)
+* Hiển thị chi tiết tổng giá gốc, tổng giảm giá và tổng số tiền phải thanh toán
+. **Chọn phương thức thanh toán**
+* Người dùng phải nhập thông tin thanh toán (thông tin thẻ tín dụng sẽ không được lưu trữ)
+
+. **Xác nhận thanh toán**
+
+. **Tạo đơn hàng**:
+
+   * **Nếu đã đăng nhập**:
+   ** Hệ thống lưu đơn hàng vào CSDL với liên kết đến tài khoản người dùng (user_id)
+   ** Nếu là địa chỉ mới và người dùng chọn lưu lại, địa chỉ được thêm vào CSDL Địa chỉ người dùng
+   ** Truy cập CSDL mã giảm giá và trừ đi số lần sử dụng của mã mà người dùng đã dùng (nếu có)
+
+   * **Nếu chưa đăng nhập**:
+   ** Hệ thống lưu đơn hàng vào CSDL Đơn hàng với user_id = NULL
+   ** Lưu toàn bộ thông tin liên hệ (tên, số điện thoại, địa chỉ, email) trực tiếp vào bản ghi đơn hàng trong CSDL đơn hàng
+   ** Truy cập CSDL mã giảm giá và trừ đi số lần sử dụng của mã mà người dùng đã dùng (nếu có)
+
+. **Thông báo xác nhận**:
+* Hiển thị thông báo thành công trên màn hình
+* Với người dùng đã đăng nhập: Gửi email xác nhận
+
+## 2. Mua hàng từ giỏ hàng.
+. *Thêm nhiều sản phẩm vào giỏ hàng*
+. **Kiểm tra giỏ hàng**: Hệ thống xác minh tồn kho
+. **Nhập mã giảm giá** (tùy chọn):
+* Hiển thị trường nhập mã giảm giá
+* Người dùng có thể nhập mã giảm giá (nếu có)
+* Hệ thống kiểm tra tính hợp lệ của mã và áp dụng giảm giá nếu hợp lệ
+
+
+. **Kiểm tra trạng thái đăng nhập**:
+
+   * **Nếu đã đăng nhập**:
+   ** Hệ thống truy vấn CSDL Người dùng để lấy thông tin địa chỉ đã lưu
+   ** Nếu có địa chỉ: Hiển thị danh sách địa chỉ để chọn hoặc tùy chọn thêm địa chỉ mới
+   ** Nếu không có địa chỉ: Hiển thị form nhập địa chỉ mới với tùy chọn lưu lại
+
+   * **Nếu chưa đăng nhập**:
+   ** Hệ thống kiểm tra localStorage để tìm thông tin khách vãng lai đã lưu trước đó
+   ** Nếu có: Tự động điền thông tin vào form (tên, số điện thoại, địa chỉ, email)
+   ** Nếu không: Hiển thị form trống để nhập thông tin
+   ** Người dùng điền hoặc xác nhận thông tin cần thiết
+
+. **Tính toán giá cuối cùng**
+    * Tinh toán giá sau khi đã áp dụng mã giảm giá, chương trình khuyến mãi (nếu có)
+. **Chọn phương thức thanh toán**
+
+* Người dùng phải nhập thông tin thanh toán (thông tin thẻ tín dụng sẽ không được lưu trữ)
+
+. **Xác thực thanh toán**
+
+. **Tạo đơn hàng**:
+
+    * **Nếu đã đăng nhập**:
+    ** Hệ thống lưu đơn hàng vào CSDL với liên kết đến tài khoản người dùng (user_id)
+    ** Nếu là địa chỉ mới và người dùng chọn lưu lại, địa chỉ được thêm vào CSDL Địa chỉ người dùng
+    ** Lưu thông tin mã giảm giá đã áp dụng vào đơn hàng (nếu có)
+
+    * **Nếu chưa đăng nhập**:
+    ** Hệ thống lưu đơn hàng vào CSDL Đơn hàng với user_id = NULL
+    ** Lưu toàn bộ thông tin liên hệ trực tiếp vào bản ghi đơn hàng
+    ** Lưu thông tin mã giảm giá đã áp dụng vào đơn hàng (nếu có)
+    ** Lưu thông tin khách vãng lai vào localStorage của trình duyệt cho lần mua tiếp theo
+
+. **Xóa giỏ hàng**
+* Xóa sản phẩm đã đưa vào đơn hàng sau khi mua hàng trong giỏ hàng (Sử dụng id sản phẩm)
+. **Thông báo xác nhận**:
+* Hiển thị thông báo trên màn hình
+* Với người dùng đã đăng nhập: Gửi email xác nhận
+
+## Xử lý sau khi đặt hàng
+
+. **Cập nhật tồn kho**: Hệ thống tự động giảm số lượng tồn kho
+. **Cập nhật lượt sử dụng mã giảm giá**: Cập nhật số lần mã giảm giá đã được sử dụng (nếu có)
+. **Thông báo Admin**: Quản trị viên nhận thông báo về đơn hàng mới
+. **Quản lý đơn hàng**: Admin cập nhật trạng thái đơn hàng (từ "Chờ xử lý" sang "Đang giao")
+. **Thông báo Shipper**: Khi đơn hàng chuyển sang trạng thái "Đang giao", shipper nhận thông tin giao hàng
+. **Xác nhận giao hàng**: Shipper cập nhật trạng thái khi giao hàng thành công
+. **Thông báo người dùng**: Người dùng/khách vãng lai nhận thông báo khi đơn hàng được giao thành công
+
+## Ghi chú bổ sung
+
+- **Lưu trữ thông tin khách vãng lai**: Chỉ lưu thông tin cơ bản (tên, số điện thoại, địa chỉ, email) trong localStorage, không lưu thông tin thanh toán
+- **Thời hạn localStorage**: Có thể thiết lập thời hạn cho thông tin trong localStorage (ví dụ: 90 ngày)
+- **Nhiều thiết bị**: Khách vãng lai sẽ cần nhập lại thông tin khi sử dụng thiết bị/trình duyệt khác
+- **Trong CSDL**: Đơn hàng của khách vãng lai sẽ có user_id = NULL và chứa toàn bộ thông tin liên hệ cần thiết
+- **Xử lý mã giảm giá**: Cần kiểm tra các điều kiện hợp lệ của mã giảm giá như thời hạn sử dụng, số lần sử dụng còn lại, giới hạn giá trị đơn hàng áp dụng, và các sản phẩm/danh mục được áp dụng

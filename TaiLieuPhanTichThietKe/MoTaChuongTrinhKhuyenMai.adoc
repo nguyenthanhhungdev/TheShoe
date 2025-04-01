@@ -1,0 +1,3 @@
+= Mô tả chương trình khuyến mãi
+
+Admin có thể thêm, sửa, xóa các chương trình khuyến mãi. Các chương trình khuyến mãi sẽ có thời gian bắt đầu và kết thúc, mức giảm giá (%), các danh mục sản phầm sẽ giảm. Admin sẽ tạo chương trình khuyến mãi sau đó các khuyến mãi sẽ tự động được áp dụng vào sàn và tự động kết thúc khi hết thời gian.

@@ -1,0 +1,54 @@
+= Sơ đồ DFD mức 1 cho chức năng Thống kê và Báo cáo
+
+:sectnums:
+:imagesdir: .
+:icons: font
+:source-highlighter: coderay
+:toc:
+
+== Thực thể & Kho dữ liệu liên quan:
+
+* Quản trị viên (Admin): Người gửi yêu cầu báo cáo và xem dữ liệu thống kê.
+
+* CSDL Đơn hàng: Chứa thông tin các đơn hàng, bao gồm trạng thái, tổng tiền, thời gian đặt hàng.
+
+* CSDL Sản phẩm: Chứa thông tin về sản phẩm (tên, loại, số lượng bán, doanh thu từng sản phẩm).
+
+* CSDL Người dùng: Lưu trữ thông tin khách hàng, giúp thống kê số lượng người dùng mới, tần suất mua hàng.
+
+* Hệ thống Xử lý Báo cáo: Tổng hợp dữ liệu từ CSDL, tính toán doanh thu, số lượng bán, sản phẩm bán chạy và tạo báo cáo.
+
+* Hệ thống Xuất báo cáo: Cung cấp báo cáo dưới dạng file (PDF, Excel) để admin có thể tải xuống.
+
+== Các quy trình chính của Thống kê và Báo cáo:
+
+. Yêu cầu báo cáo thống kê
+
+* Quản trị viên nhập tiêu chí thống kê (khoảng thời gian, loại sản phẩm, doanh thu, đơn hàng, khách hàng, v.v.).
+
+* Hệ thống tiếp nhận yêu cầu và gửi truy vấn dữ liệu đến CSDL.
+
+. Truy vấn và tổng hợp dữ liệu
+
+* Hệ thống truy vấn CSDL Đơn hàng, CSDL Sản phẩm, và CSDL Người dùng để lấy dữ liệu phù hợp với yêu cầu.
+
+* Dữ liệu được xử lý và tổng hợp theo các chỉ tiêu cần thiết.
+
+. Xử lý và tạo báo cáo
+
+* Hệ thống phân tích dữ liệu, tính toán doanh thu, sản phẩm bán chạy, lượng khách hàng mới.
+
+* Tạo báo cáo dưới dạng bảng thống kê, biểu đồ trực quan.
+
+Báo cáo có thể được hiển thị trực tiếp trên hệ thống hoặc xuất thành file (PDF, Excel).
+
+. Cung cấp báo cáo cho Quản trị viên
+
+* Báo cáo được hiển thị trên giao diện quản trị.
+
+* Quản trị viên có thể xuất dữ liệu hoặc tải xuống báo cáo nếu cần.
+
+* Lưu trữ lịch sử báo cáo để có thể xem lại khi cần thiết.
+
+== Sơ đồ DFD mức 1: Thống kê và Báo cáo
+image::DFD1BCTK.png[Sơ đồ DFD mức 1: Thống kê và Báo cáo]

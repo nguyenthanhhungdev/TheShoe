@@ -1,0 +1,53 @@
+= Sơ đồ DFD mức 1 Quản lý người dùng
+:sectnums:
+:icons: font
+:source-highlighter: coderay
+:imagesdir: .
+:toc:
+
+== Thực thể bên ngoài & Kho dữ liệu
+
+    * Admin (Quản trị viên) – Người quản lý tài khoản (đặc biệt là tạo tài khoản cho Shipper) và có quyền chỉnh sửa/vô hiệu hóa tài khoản.
+    * Khách hàng – Người dùng đăng ký tài khoản cho mình thông qua hệ thống (qua Clerk – module xử lý đăng ký).
+    * Shipper – Người giao hàng, tài khoản do Admin tạo.
+    * Clerk – (Module nội bộ hệ thống thực hiện việc xác thực và gán quyền cho tài khoản khách hàng khi đăng ký hoặc kiểm tra quyền khi đăng nhập).
+    * CSDL Người dùng – Kho dữ liệu lưu trữ thông tin tài khoản và quyền hạn của từng người dùng trong hệ thống.
+    * Hệ thống Email (Email Notification System) – Hệ thống bên ngoài gửi email thông báo khi Admin vô hiệu hóa tài khoản người dùng.
+
+== Các quy trình chính
+
+. Khách hàng tự đăng ký tài khoản
+
+    * Dữ liệu vào: Thông tin đăng ký (ví dụ: tên, email, mật khẩu) do Khách hàng nhập vào hệ thống.
+    * Xử lý: Module Clerk tiếp nhận thông tin, xác thực dữ liệu (kiểm tra tính hợp lệ, trùng lặp email, v.v.) và tạo tài khoản mới với quyền mặc định của khách hàng.
+    * Dữ liệu ra: Thông tin tài khoản mới (hồ sơ khách hàng và quyền hạn mặc định) được lưu vào CSDL Người dùng. Hệ thống có thể phản hồi Khách hàng (ví dụ: thông báo đăng ký thành công hoặc yêu cầu xác minh email).
+
+. Admin tạo tài khoản Shipper
+
+    * Dữ liệu vào: Thông tin tài khoản Shipper mới (họ tên, liên hệ, v.v.) do Admin cung cấp qua giao diện quản trị.
+    * Xử lý: Hệ thống tiếp nhận thông tin này, đảm bảo dữ liệu hợp lệ và khởi tạo tài khoản Shipper với quyền hạn tương ứng (quyền của Shipper trong hệ thống).
+    * Dữ liệu ra: Thông tin tài khoản Shipper mới được ghi vào CSDL Người dùng. Hệ thống có thể gửi lại thông tin đăng nhập ban đầu cho Admin (để chuyển cho Shipper) hoặc trực tiếp gửi email cho Shipper (nếu có chức năng gửi thông tin tài khoản).
+
+. Chỉnh sửa hoặc Vô hiệu hóa tài khoản
+
+    * Dữ liệu vào: Yêu cầu chỉnh sửa quyền hoặc vô hiệu hóa một tài khoản cụ thể từ Admin (bao gồm định danh tài khoản và thay đổi mong muốn).
+    * Xử lý: Hệ thống kiểm tra quyền hiện tại của tài khoản mục tiêu bằng cách truy xuất dữ liệu từ CSDL Người dùng (ví dụ: lấy thông tin quyền hiện tại để hiển thị cho Admin xác nhận). Sau đó, Admin cập nhật quyền mới hoặc đánh dấu tài khoản là vô hiệu hóa.
+    * Nếu thay đổi quyền hạn: Hệ thống cập nhật quyền mới cho tài khoản trong CSDL Người dùng.
+    * Nếu vô hiệu hóa tài khoản: Hệ thống cập nhật trạng thái vô hiệu hóa trong CSDL, đồng thời gửi thông báo qua Hệ thống Email đến người dùng (khách hàng/shipper) đó để báo rằng tài khoản đã bị vô hiệu hóa.
+    * Dữ liệu ra:
+        ** Bản ghi tài khoản với quyền hạn mới/cập nhật trạng thái được lưu trở lại CSDL Người dùng.
+        ** Email thông báo được gửi đến người dùng bị vô hiệu hóa (nếu áp dụng).
+        ** Thông báo kết quả (thành công hoặc lỗi) hiển thị cho Admin.
+
+. Kiểm tra quyền khi người dùng thực hiện hành động
+
+    * Dữ liệu vào: Yêu cầu thực hiện chức năng từ Người dùng (có thể là Khách hàng hoặc Shipper đăng nhập hệ thống) – ví dụ: truy cập trang quản trị, thực hiện một hành động đòi hỏi quyền đặc biệt. Yêu cầu này bao gồm thông tin người dùng (đã đăng nhập) và chức năng muốn truy cập.
+    * Xử lý: Module Clerk (hoặc cơ chế phân quyền nội bộ) sẽ kiểm tra quyền hạn của người dùng đối với chức năng được yêu cầu. Quá trình này gồm đối chiếu thông tin quyền của người dùng (lấy từ CSDL Người dùng) với yêu cầu hành động:
+        ** Nếu người dùng có đủ quyền: Clerk cho phép tiếp tục thực hiện hành động (chuyển yêu cầu vào quy trình chức năng tương ứng trong hệ thống).
+        ** Nếu không đủ quyền: Clerk chặn hành động và tạo thông báo lỗi.
+    * Dữ liệu ra:
+        ** Trường hợp đủ quyền: Hệ thống cho phép người dùng thực hiện chức năng, có thể phản hồi dữ liệu hoặc giao diện tiếp theo phù hợp (luồng dữ liệu tiếp tục vào tiến trình chức năng đích, ngoài phạm vi sơ đồ phân quyền).
+        ** Trường hợp không đủ quyền: Thông báo lỗi hoặc thông báo từ chối truy cập được gửi đến Người dùng (ví dụ: “Bạn không có quyền thực hiện chức năng này”).
+
+== Sơ đồ DFD mức 1: Quản lý người dùng
+image::DFD1QLND.png[Sơ đồ DFD mức 1: Quản lý người dùng]
