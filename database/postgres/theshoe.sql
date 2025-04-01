@@ -424,3 +424,59 @@ BEGIN
     END IF;
 END;
 $$;
+
+
+CREATE OR REPLACE FUNCTION fn_check_stock(
+    p_product_id UUID,
+    p_requested_quantity INT
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_current_stock INT;
+BEGIN
+    SELECT stock_quantity INTO v_current_stock
+    FROM "Product"
+    WHERE id = p_product_id;
+
+    IF NOT FOUND THEN
+        -- Xử lý trường hợp không tìm thấy sản phẩm (có thể trả về FALSE hoặc raise exception)
+        RETURN FALSE;
+        -- RAISE EXCEPTION 'Không tìm thấy sản phẩm với ID: %', p_product_id;
+    END IF;
+
+    RETURN v_current_stock >= p_requested_quantity;
+END;
+$$;
+
+-- Cách sử dụng ví dụ:
+-- SELECT fn_check_stock('your-product-uuid', 5);
+
+CREATE OR REPLACE FUNCTION fn_search_products(
+    p_search_term TEXT DEFAULT NULL,         -- Từ khóa tìm kiếm trong tên hoặc mô tả
+    p_category_id UUID DEFAULT NULL,         -- Lọc theo ID danh mục
+    p_min_price DECIMAL(10, 2) DEFAULT NULL, -- Giá tối thiểu
+    p_max_price DECIMAL(10, 2) DEFAULT NULL  -- Giá tối đa
+)
+RETURNS SETOF "Product" -- Trả về một tập hợp các dòng từ bảng Product
+LANGUAGE sql STABLE -- STABLE vì nó không sửa đổi dữ liệu và luôn trả về kết quả giống nhau cho cùng input trong một transaction
+AS $$
+SELECT *
+FROM "Product"
+WHERE
+    (p_search_term IS NULL OR name ILIKE '%' || p_search_term || '%' OR description ILIKE '%' || p_search_term || '%')
+AND
+    (p_category_id IS NULL OR category_id = p_category_id)
+AND
+    (p_min_price IS NULL OR price >= p_min_price)
+AND
+    (p_max_price IS NULL OR price <= p_max_price)
+ORDER BY created_at DESC; -- Sắp xếp theo sản phẩm mới nhất (tùy chọn)
+$$;
+
+-- Cách sử dụng ví dụ:
+-- SELECT * FROM fn_search_products(p_search_term := 'áo', p_max_price := 500.00);
+-- SELECT * FROM fn_search_products(p_category_id := 'your-category-uuid');
+-- SELECT * FROM fn_search_products(p_min_price := 100.00, p_max_price := 200.00);
+
