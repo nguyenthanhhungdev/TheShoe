@@ -186,3 +186,244 @@ CREATE TABLE "Permission" (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE OR REPLACE PROCEDURE sp_update_order_status(
+    p_order_id UUID,
+    p_new_status VARCHAR(20)
+)
+LANGUAGE plpgsql
+AS $$
+BEGINTừ 1. Stored Procedures (SP) Hợp Lệ trong file đã cung cấp hãy viết plsql trong postgres
+    -- Kiểm tra xem trạng thái mới có hợp lệ không (tùy chọn, có thể thêm kiểm tra dựa trên CHECK constraint)
+    IF p_new_status NOT IN ('pending', 'processing', 'shipped', 'delivered', 'cancelled') THEN
+        RAISE EXCEPTION 'Trạng thái đơn hàng không hợp lệ: %', p_new_status;
+    END IF;
+
+    UPDATE "Order"
+    SET status = p_new_status,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = p_order_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Không tìm thấy đơn hàng với ID: %', p_order_id;
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE sp_remove_from_cart(
+    p_cart_id UUID,
+    p_product_id UUID
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    DELETE FROM "CartItem"
+    WHERE cart_id = p_cart_id AND product_id = p_product_id;
+
+    IF NOT FOUND THEN
+        RAISE WARNING 'Không tìm thấy sản phẩm (ID: %) trong giỏ hàng (ID: %)', p_product_id, p_cart_id;
+    END IF;
+
+    -- Cập nhật thời gian updated_at cho giỏ hàng (tùy chọn)
+    UPDATE "Cart"
+    SET updated_at = CURRENT_TIMESTAMP
+    WHERE id = p_cart_id;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE sp_add_address(
+    p_user_id UUID,
+    p_street VARCHAR(255),
+    p_city VARCHAR(100),
+    p_postal_code VARCHAR(20),
+    p_is_default BOOLEAN DEFAULT false
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_new_address_id UUID;
+BEGIN
+    -- Nếu địa chỉ mới được đặt làm mặc định, cập nhật các địa chỉ khác của người dùng thành không mặc định
+    IF p_is_default THEN
+        UPDATE "Address"
+        SET is_default = false
+        WHERE user_id = p_user_id AND is_default = true;
+    END IF;
+
+    INSERT INTO "Address" (user_id, street, city, postal_code, is_default)
+    VALUES (p_user_id, p_street, p_city, p_postal_code, p_is_default)
+    RETURNING id INTO v_new_address_id;
+
+    -- Có thể trả về ID của địa chỉ mới nếu cần
+    -- RAISE NOTICE 'Đã thêm địa chỉ mới với ID: %', v_new_address_id;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE sp_set_default_address(
+    p_user_id UUID,
+    p_address_id UUID
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Bỏ cờ mặc định cho tất cả địa chỉ khác của người dùng
+    UPDATE "Address"
+    SET is_default = false,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE user_id = p_user_id AND id <> p_address_id AND is_default = true;
+
+    -- Đặt cờ mặc định cho địa chỉ được chỉ định
+    UPDATE "Address"
+    SET is_default = true,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = p_address_id AND user_id = p_user_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Không tìm thấy địa chỉ với ID: % cho người dùng ID: %', p_address_id, p_user_id;
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE sp_create_payment(
+    p_order_id UUID,
+    p_amount DECIMAL(10,2),
+    p_method VARCHAR(50),
+    p_status VARCHAR(20)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Kiểm tra giá trị hợp lệ cho method và status (tùy chọn, có thể thêm kiểm tra dựa trên CHECK constraint)
+    IF p_method NOT IN ('credit_card', 'ewallet', 'cash') THEN
+        RAISE EXCEPTION 'Phương thức thanh toán không hợp lệ: %', p_method;
+    END IF;
+    IF p_status NOT IN ('success', 'failed') THEN
+        RAISE EXCEPTION 'Trạng thái thanh toán không hợp lệ: %', p_status;
+    END IF;
+
+    INSERT INTO "Payment" (order_id, amount, method, status)
+    VALUES (p_order_id, p_amount, p_method, p_status);
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE sp_update_payment_status(
+    p_payment_id UUID,
+    p_new_status VARCHAR(20)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Kiểm tra giá trị hợp lệ cho status (tùy chọn)
+    IF p_new_status NOT IN ('success', 'failed') THEN
+        RAISE EXCEPTION 'Trạng thái thanh toán không hợp lệ: %', p_new_status;
+    END IF;
+
+    UPDATE "Payment"
+    SET status = p_new_status
+    -- Không cập nhật updated_at vì bảng Payment không có trường này, chỉ có created_at
+    WHERE id = p_payment_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Không tìm thấy thanh toán với ID: %', p_payment_id;
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE sp_assign_shipper(
+    p_shipping_id UUID, -- Giả sử cập nhật dựa trên ID của bảng Shipping
+    p_shipper_id UUID
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Kiểm tra xem shipper_id có tồn tại trong bảng User không (tùy chọn)
+    -- IF NOT EXISTS (SELECT 1 FROM "User" WHERE id = p_shipper_id) THEN
+    --     RAISE EXCEPTION 'Không tìm thấy người dùng (shipper) với ID: %', p_shipper_id;
+    -- END IF;
+
+    UPDATE "Shipping"
+    SET shipper_id = p_shipper_id,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = p_shipping_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Không tìm thấy bản ghi giao hàng với ID: %', p_shipping_id;
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE sp_update_shipping_status(
+    p_shipping_id UUID,
+    p_new_status VARCHAR(20)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Kiểm tra giá trị hợp lệ cho status (tùy chọn)
+    IF p_new_status NOT IN ('pending', 'shipping', 'delivered') THEN
+        RAISE EXCEPTION 'Trạng thái giao hàng không hợp lệ: %', p_new_status;
+    END IF;
+
+    UPDATE "Shipping"
+    SET status = p_new_status,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = p_shipping_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Không tìm thấy bản ghi giao hàng với ID: %', p_shipping_id;
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE sp_register_user(
+    p_name VARCHAR(100),
+    p_email VARCHAR(255),
+    p_sodienthoai VARCHAR(20),
+    p_hashed_password VARCHAR(255) -- Nhận mật khẩu đã được mã hóa
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_new_user_id UUID;
+BEGIN
+    -- Kiểm tra email và số điện thoại đã tồn tại chưa (có thể xử lý lỗi UNIQUE constraint)
+    IF EXISTS (SELECT 1 FROM "User" WHERE email = p_email) THEN
+        RAISE EXCEPTION 'Email đã tồn tại: %', p_email;
+    END IF;
+    IF EXISTS (SELECT 1 FROM "User" WHERE sodienthoai = p_sodienthoai) THEN
+        RAISE EXCEPTION 'Số điện thoại đã tồn tại: %', p_sodienthoai;
+    END IF;
+
+    INSERT INTO "User" (name, email, sodienthoai, password)
+    VALUES (p_name, p_email, p_sodienthoai, p_hashed_password)
+    RETURNING id INTO v_new_user_id;
+
+    -- Có thể trả về ID người dùng mới nếu cần
+    -- RAISE NOTICE 'Đã đăng ký người dùng mới với ID: %', v_new_user_id;
+
+    -- Tự động tạo giỏ hàng cho người dùng mới
+    INSERT INTO "Cart" (user_id) VALUES (v_new_user_id);
+    -- Tự động tạo danh sách yêu thích cho người dùng mới
+    INSERT INTO "Wishlist" (user_id) VALUES (v_new_user_id);
+
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE sp_update_user_profile(
+    p_user_id UUID,
+    p_name VARCHAR(100)
+    -- Có thể thêm các trường khác cần cập nhật nếu muốn, ví dụ: avatar_url,...
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE "User"
+    SET name = p_name,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = p_user_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Không tìm thấy người dùng với ID: %', p_user_id;
+    END IF;
+END;
+$$;
