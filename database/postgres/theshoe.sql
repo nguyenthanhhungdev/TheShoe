@@ -236,26 +236,24 @@ CREATE OR REPLACE PROCEDURE sp_add_address(
     p_street VARCHAR(255),
     p_city VARCHAR(100),
     p_postal_code VARCHAR(20),
-    p_is_default BOOLEAN DEFAULT false
+    p_is_default BOOLEAN
 )
 LANGUAGE plpgsql
 AS $$
-DECLARE
-    v_new_address_id UUID;
 BEGIN
-    -- Nếu địa chỉ mới được đặt làm mặc định, cập nhật các địa chỉ khác của người dùng thành không mặc định
+    -- Kiểm tra user tồn tại
+    IF NOT EXISTS (SELECT 1 FROM "User" WHERE id = p_user_id) THEN
+        RAISE EXCEPTION 'Người dùng không tồn tại';
+    END IF;
+
     IF p_is_default THEN
         UPDATE "Address"
         SET is_default = false
-        WHERE user_id = p_user_id AND is_default = true;
+        WHERE user_id = p_user_id;
     END IF;
 
     INSERT INTO "Address" (user_id, street, city, postal_code, is_default)
-    VALUES (p_user_id, p_street, p_city, p_postal_code, p_is_default)
-    RETURNING id INTO v_new_address_id;
-
-    -- Có thể trả về ID của địa chỉ mới nếu cần
-    -- RAISE NOTICE 'Đã thêm địa chỉ mới với ID: %', v_new_address_id;
+    VALUES (p_user_id, p_street, p_city, p_postal_code, p_is_default);
 END;
 $$;
 
@@ -330,25 +328,24 @@ END;
 $$;
 
 CREATE OR REPLACE PROCEDURE sp_assign_shipper(
-    p_shipping_id UUID, -- Giả sử cập nhật dựa trên ID của bảng Shipping
+    p_order_id UUID,
     p_shipper_id UUID
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    -- Kiểm tra xem shipper_id có tồn tại trong bảng User không (tùy chọn)
-    -- IF NOT EXISTS (SELECT 1 FROM "User" WHERE id = p_shipper_id) THEN
-    --     RAISE EXCEPTION 'Không tìm thấy người dùng (shipper) với ID: %', p_shipper_id;
-    -- END IF;
+    -- Kiểm tra shipper có role phù hợp
+    IF NOT EXISTS (
+        SELECT 1 FROM "UserRole" ur
+        JOIN "Role" r ON ur.role_id = r.id
+        WHERE ur.user_id = p_shipper_id AND r.name = 'shipper'
+    ) THEN
+        RAISE EXCEPTION 'Người dùng không phải shipper';
+    END IF;
 
     UPDATE "Shipping"
-    SET shipper_id = p_shipper_id,
-        updated_at = CURRENT_TIMESTAMP
-    WHERE id = p_shipping_id;
-
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'Không tìm thấy bản ghi giao hàng với ID: %', p_shipping_id;
-    END IF;
+    SET shipper_id = p_shipper_id
+    WHERE order_id = p_order_id;
 END;
 $$;
 
