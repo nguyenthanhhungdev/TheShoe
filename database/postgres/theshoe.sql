@@ -26,43 +26,8 @@ CREATE TABLE "UserRole" (
     user_id UUID,
     role_id UUID,
     PRIMARY KEY (user_id, role_id),
-    FOREIGN KEY (user_id) REFERENCES "User"(id),
-    FOREIGN KEY (role_id) REFERENCES "Role"(id)
-);
-
--- Tạo bảng Product
-CREATE TABLE "Product" (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(200) NOT NULL,
-    description TEXT,
-    stock_price DECIMAL(10,2) NOT NULL,
-    price DECIMAL(10,2) NOT NULL,
-    stock_quantity INT NOT NULL,
-    FOREIGN KEY category_id UUID REFERENCES "Category"(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Tạo bảng Order
-CREATE TABLE "Order" (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    FOREIGN KEY user_id UUID REFERENCES "User"(id),
-    status VARCHAR(20) CHECK (status IN ('pending', 'processing', 'shipped', 'delivered', 'cancelled')),
-    total_amount DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY discount_code_id UUID REFERENCES "DiscountCode"(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Tạo bảng OrderDetail
-CREATE TABLE "OrderDetail" (
-    order_id UUID,
-    product_id UUID,
-    quantity INT,
-    price_at_purchase DECIMAL(10,2),
-    PRIMARY KEY (order_id, product_id),
-    FOREIGN KEY (order_id) REFERENCES "Order"(id),
-    FOREIGN KEY (product_id) REFERENCES "Product"(id)
+    user_id UUID REFERENCES "User"(id),
+    role_id UUID REFERENCES "Role"(id)
 );
 
 -- Tạo bảng Category
@@ -74,47 +39,15 @@ CREATE TABLE "Category" (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tạo bảng Address
-CREATE TABLE "Address" (
+-- Tạo bảng Product
+CREATE TABLE "Product" (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    FOREIGN KEY user_id UUID REFERENCES "User"(id) NOT NULL,
-    street VARCHAR(255) NOT NULL,
-    city VARCHAR(100) NOT NULL,
-    postal_code VARCHAR(20) NOT NULL,
-    is_default BOOLEAN DEFAULT false,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Tạo bảng Payment
-CREATE TABLE "Payment" (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    FOREIGN KEY order_id UUID REFERENCES "Order"(id) NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
-    method VARCHAR(50) CHECK (method IN ('credit_card', 'ewallet', 'cash')),
-    status VARCHAR(20) CHECK (status IN ('success', 'failed')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Tạo bảng Shipping
-CREATE TABLE "Shipping" (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    FOREIGN KEY order_id UUID REFERENCES "Order"(id) NOT NULL,
-    FOREIGN KEY address_id UUID REFERENCES "Address"(id) NOT NULL,
-    status VARCHAR(20) CHECK (status IN ('pending', 'shipping', 'delivered')),
-    FOREIGN KEY shipper_id UUID REFERENCES "User"(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Tạo bảng Promotion
-CREATE TABLE "Promotion" (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(100) NOT NULL,
+    name VARCHAR(200) NOT NULL,
     description TEXT,
-    discount_percentage DECIMAL(5,2) NOT NULL,
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
+    stock_price DECIMAL(10,2) NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    stock_quantity INT NOT NULL,
+    category_id UUID REFERENCES "Category"(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -131,11 +64,78 @@ CREATE TABLE "DiscountCode" (
     end_date DATE NOT NULL
 );
 
+-- Tạo bảng Order
+CREATE TABLE "Order" (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES "User"(id),
+    status VARCHAR(20) CHECK (status IN ('pending', 'processing', 'shipped', 'delivered', 'cancelled')),
+    total_amount DECIMAL(10,2) NOT NULL,
+    discount_code_id UUID REFERENCES "DiscountCode"(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tạo bảng OrderDetail
+CREATE TABLE "OrderDetail" (
+    order_id UUID,
+    product_id UUID,
+    quantity INT,
+    price_at_purchase DECIMAL(10,2),
+    PRIMARY KEY (order_id, product_id),
+    order_id UUID REFERENCES "Order"(id),
+    product_id UUID REFERENCES "Product"(id)
+);
+
+-- Tạo bảng Address
+CREATE TABLE "Address" (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES "User"(id) NOT NULL,
+    street VARCHAR(255) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    postal_code VARCHAR(20) NOT NULL,
+    is_default BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tạo bảng Payment
+CREATE TABLE "Payment" (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID REFERENCES "Order"(id) NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    method VARCHAR(50) CHECK (method IN ('credit_card', 'ewallet', 'cash')),
+    status VARCHAR(20) CHECK (status IN ('success', 'failed')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tạo bảng Shipping
+CREATE TABLE "Shipping" (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID REFERENCES "Order"(id) NOT NULL,
+    address_id UUID REFERENCES "Address"(id) NOT NULL,
+    status VARCHAR(20) CHECK (status IN ('pending', 'shipping', 'delivered')),
+    shipper_id UUID REFERENCES "User"(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tạo bảng Promotion
+CREATE TABLE "Promotion" (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    discount_percentage DECIMAL(5,2) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Tạo bảng Review
 CREATE TABLE "Review" (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    FOREIGN KEY product_id UUID REFERENCES "Product"(id) NOT NULL,
-    FOREIGN KEY user_id UUID REFERENCES "User"(id) NOT NULL,
+    product_id UUID REFERENCES "Product"(id) NOT NULL,
+    user_id UUID REFERENCES "User"(id) NOT NULL,
     rating INT CHECK (rating BETWEEN 1 AND 5),
     comment TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -144,7 +144,7 @@ CREATE TABLE "Review" (
 -- Tạo bảng Wishlist
 CREATE TABLE "Wishlist" (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    FOREIGN KEY user_id UUID REFERENCES "User"(id) NOT NULL,
+    user_id UUID REFERENCES "User"(id) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -152,34 +152,25 @@ CREATE TABLE "Wishlist" (
 -- Tạo bảng Cart
 CREATE TABLE "Cart" (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    FOREIGN Key user_id UUID REFERENCES "User"(id) NOT NULL UNIQUE,
+    user_id UUID REFERENCES "User"(id) NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-
 -- Bảng trung gian CartItem (N:M)
 CREATE TABLE "CartItem" (
-    FOREIGN KEY cart_id UUID REFERENCES "Cart"(id),
-    FOREIGN KEY product_id UUID REFERENCES "Product"(id),
+    cart_id UUID REFERENCES "Cart"(id),
+    product_id UUID REFERENCES "Product"(id),
     quantity INT NOT NULL,
     PRIMARY KEY (cart_id, product_id)
 );
 
 -- Bảng trung gian PromotionProduct (N:M)
 CREATE TABLE "PromotionProduct" (
-    FOREIGN KEY promotion_id UUID REFERENCES "Promotion"(id),
-    FOREIGN KEY product_id UUID REFERENCES "Product"(id),
+    promotion_id UUID REFERENCES "Promotion"(id),
+    product_id UUID REFERENCES "Product"(id),
     PRIMARY KEY (promotion_id, product_id)
 );
-
--- Bảng trung gian RolePermission (N:M)
-CREATE TABLE "RolePermission" (
-    FOREIGN KEY role_id UUID REFERENCES "Role"(id),
-    FOREIGN KEY permission_id UUID REFERENCES "Permission"(id),
-    PRIMARY KEY (role_id, permission_id)
-);
-
 
 -- Tạo bảng Permission
 CREATE TABLE "Permission" (
@@ -190,13 +181,21 @@ CREATE TABLE "Permission" (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Bảng trung gian RolePermission (N:M)
+CREATE TABLE "RolePermission" (
+    role_id UUID REFERENCES "Role"(id),
+    permission_id UUID REFERENCES "Permission"(id),
+    PRIMARY KEY (role_id, permission_id)
+);
+
 CREATE OR REPLACE PROCEDURE sp_update_order_status(
     p_order_id UUID,
     p_new_status VARCHAR(20)
 )
 LANGUAGE plpgsql
 AS $$
-BEGINTừ 1. Stored Procedures (SP) Hợp Lệ trong file đã cung cấp hãy viết plsql trong postgres
+BEGIN
+    -- Từ 1. Stored Procedures (SP) Hợp Lệ trong file đã cung cấp hãy viết plsql trong postgres
     -- Kiểm tra xem trạng thái mới có hợp lệ không (tùy chọn, có thể thêm kiểm tra dựa trên CHECK constraint)
     IF p_new_status NOT IN ('pending', 'processing', 'shipped', 'delivered', 'cancelled') THEN
         RAISE EXCEPTION 'Trạng thái đơn hàng không hợp lệ: %', p_new_status;
@@ -583,4 +582,3 @@ CREATE INDEX idx_product_category_price ON "Product" (category_id, price);
 -- Index cho cột name để tìm kiếm/lọc (Tối ưu cho tìm kiếm text tiếng Việt với unaccent)
 -- Index này giả định configuration 'vietnamese_unaccent' hoặc tương tự đã tồn tại, hoặc sử dụng unaccent trực tiếp.
 CREATE INDEX idx_category_name_fts ON "Category" USING GIN (to_tsvector('vietnamese_unaccent', name)); -- Sử dụng unaccent trực tiếp
-
