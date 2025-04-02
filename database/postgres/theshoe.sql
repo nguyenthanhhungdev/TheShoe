@@ -1,3 +1,6 @@
+-- Kích hoạt extension unaccent nếu chưa có
+CREATE EXTENSION IF NOT EXISTS unaccent;
+
 -- Tạo bảng User
 CREATE TABLE "User" (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -479,4 +482,105 @@ $$;
 -- SELECT * FROM fn_search_products(p_search_term := 'áo', p_max_price := 500.00);
 -- SELECT * FROM fn_search_products(p_category_id := 'your-category-uuid');
 -- SELECT * FROM fn_search_products(p_min_price := 100.00, p_max_price := 200.00);
+
+-- Tạo các index
+
+-- Bảng Order
+CREATE INDEX idx_order_user ON "Order" (user_id);
+CREATE INDEX idx_order_discount_code ON "Order" (discount_code_id);
+CREATE INDEX idx_order_status ON "Order" (status);
+CREATE INDEX idx_order_created_at ON "Order" (created_at);
+
+-- Bảng Product
+CREATE INDEX idx_product_category ON "Product" (category_id);
+
+-- Bảng Address
+CREATE INDEX idx_address_user ON "Address" (user_id);
+
+-- Bảng Payment
+CREATE INDEX idx_payment_order ON "Payment" (order_id);
+
+-- Bảng Shipping
+CREATE INDEX idx_shipping_order ON "Shipping" (order_id);
+CREATE INDEX idx_shipping_address ON "Shipping" (address_id);
+CREATE INDEX idx_shipping_shipper ON "Shipping" (shipper_id);
+
+-- Bảng Review
+CREATE INDEX idx_review_product ON "Review" (product_id);
+CREATE INDEX idx_review_user ON "Review" (user_id);
+
+-- Bảng Wishlist
+CREATE INDEX idx_wishlist_user ON "Wishlist" (user_id);
+
+-- Bảng Cart
+CREATE INDEX idx_cart_user ON "Cart" (user_id);
+
+-- Bảng OrderDetail
+CREATE INDEX idx_orderdetail_product ON "OrderDetail" (product_id);
+
+-- Bảng CartItem
+CREATE INDEX idx_cartitem_cart ON "CartItem" (cart_id);
+CREATE INDEX idx_cartitem_product ON "CartItem" (product_id);
+
+-- Bảng PromotionProduct
+CREATE INDEX idx_promotionproduct_promotion ON "PromotionProduct" (promotion_id);
+CREATE INDEX idx_promotionproduct_product ON "PromotionProduct" (product_id);
+
+-- Thêm các index mới
+-- Address
+CREATE INDEX idx_address_user_default ON "Address" (user_id, is_default);
+
+-- Payment
+CREATE INDEX idx_payment_status ON "Payment" (status);
+
+-- Shipping
+CREATE INDEX idx_shipping_status ON "Shipping" (status);
+CREATE INDEX idx_shipping_shipper_status ON "Shipping" (shipper_id, status);
+
+-- DiscountCode
+CREATE INDEX idx_discountcode_dates ON "DiscountCode" (start_date, end_date);
+
+-- Promotion
+CREATE INDEX idx_promotion_dates ON "Promotion" (start_date, end_date);
+
+-- UserRole
+CREATE INDEX idx_userrole_composite ON "UserRole" (user_id, role_id);
+
+-- Tạo các index cho truy vấn thường xuyên
+
+-- User:
+-- Index cho vai trò (role) thông qua bảng UserRole
+-- Tạo index cho user_id (đã là một phần của PK tổ hợp, nhưng có thể cần index riêng)
+CREATE INDEX idx_userrole_user ON "UserRole" (user_id);
+
+-- Tạo index cho role_id để tối ưu truy vấn lọc theo vai trò
+CREATE INDEX idx_userrole_role ON "UserRole" (role_id);
+
+-- 3. Composite index cho cả user_id và role_id (nếu cần truy vấn kết hợp)
+CREATE INDEX idx_userrole_user_role ON "UserRole" (user_id, role_id);
+
+-- Product:
+
+-- 1. Tạo Full-Text Index cho cột name (và description nếu cần tìm kiếm cả mô tả)
+-- Sử dụng GIN index với cấu hình 'simple' để hỗ trợ tìm kiếm đa ngôn ngữ (bao gồm tiếng Việt cơ bản)
+CREATE INDEX idx_product_name_fts ON "Product"
+USING GIN (to_tsvector(to_tsvector('vietnamese_unaccent', name) || ' ' || COALESCE(to_tsvector('vietnamese_unaccent', name), '')))
+WHERE description IS NOT NULL; -- Chỉ index nếu description tồn tại (tùy chọn)
+
+-- 2. Index cho khóa ngoại category_id
+CREATE INDEX idx_product_category ON "Product" (category_id);
+
+-- 3. Index cho cột price (B-tree phù hợp cho khoảng giá)
+CREATE INDEX idx_product_price ON "Product" (price);
+
+-- 4. Index cho cột stock_quantity (kiểm tra tồn kho nhanh)
+CREATE INDEX idx_product_stock ON "Product" (stock_quantity);
+
+-- 5. Composite Index cho các truy vấn phức tạp (Ví dụ: lọc theo danh mục và giá)
+CREATE INDEX idx_product_category_price ON "Product" (category_id, price);
+
+-- Category:
+-- Index cho cột name để tìm kiếm/lọc (Tối ưu cho tìm kiếm text tiếng Việt với unaccent)
+-- Index này giả định configuration 'vietnamese_unaccent' hoặc tương tự đã tồn tại, hoặc sử dụng unaccent trực tiếp.
+CREATE INDEX idx_category_name_fts ON "Category" USING GIN (to_tsvector('vietnamese_unaccent', name)); -- Sử dụng unaccent trực tiếp
 
