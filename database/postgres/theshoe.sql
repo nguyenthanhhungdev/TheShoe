@@ -582,3 +582,5 @@ CREATE INDEX idx_product_category_price ON "Product" (category_id, price);
 -- Index cho cột name để tìm kiếm/lọc (Tối ưu cho tìm kiếm text tiếng Việt với unaccent)
 -- Index này giả định configuration 'vietnamese_unaccent' hoặc tương tự đã tồn tại, hoặc sử dụng unaccent trực tiếp.
 CREATE INDEX idx_category_name_fts ON "Category" USING GIN (to_tsvector('vietnamese_unaccent', name)); -- Sử dụng unaccent trực tiếp
+
+
