@@ -583,4 +583,338 @@ CREATE INDEX idx_product_category_price ON "Product" (category_id, price);
 -- Index này giả định configuration 'vietnamese_unaccent' hoặc tương tự đã tồn tại, hoặc sử dụng unaccent trực tiếp.
 CREATE INDEX idx_category_name_fts ON "Category" USING GIN (to_tsvector('vietnamese_unaccent', name)); -- Sử dụng unaccent trực tiếp
 
+-- Các Prepare Statement cần thiết 
+
+-- Kích hoạt extension unaccent nếu chưa có
+-- (Đã có trong DDL cung cấp, chỉ để tham khảo)
+-- CREATE EXTENSION IF NOT EXISTS unaccent;
+
+----------------------------------------------------------------------
+-- 1. Truy vấn thông tin Người Dùng
+----------------------------------------------------------------------
+
+-- Mục đích: Lấy thông tin người dùng bằng ID, Email, hoặc Số điện thoại.
+-- Tần suất: Rất cao.
+-- Tham số: $1: user_id (UUID), $2: email (VARCHAR), $3: sodienthoai (VARCHAR)
+-- Cách dùng: Truyền giá trị cho tiêu chí cần tìm và NULL cho các tiêu chí còn lại.
+PREPARE get_user_by_identity (UUID, VARCHAR, VARCHAR) AS
+    SELECT id, name, email, sodienthoai, password, created_at, updated_at -- Luôn lấy password
+    FROM "User"
+    WHERE
+        ($1 IS NOT NULL AND id = $1) OR          -- Nếu $1 (id) được cung cấp, tìm theo id
+        ($2 IS NOT NULL AND email = $2) OR       -- Nếu $2 (email) được cung cấp, tìm theo email
+        ($3 IS NOT NULL AND sodienthoai = $3)    -- Nếu $3 (sodienthoai) được cung cấp, tìm theo số điện thoại
+    LIMIT 1; -- Vì id, email, sodienthoai là UNIQUE, chỉ cần lấy 1 bản ghi.
+
+----------------------------------------------------------------------
+-- 2. Truy vấn lấy thông tin Sản Phẩm
+----------------------------------------------------------------------
+
+-- Purpose: Search products with flexible filtering and pagination
+-- Frequency: High (product searches)
+-- Parameters:
+--   p_search_term: Text to search in name/description (NULL to skip)
+--   p_category_id: Filter by category ID (NULL for all categories)
+--   p_min_price: Minimum price filter (NULL to disable)
+--   p_max_price: Maximum price filter (NULL to disable)
+--   p_limit: Results per page (NULL for no limit)
+--   p_offset: Pagination offset (NULL starts from 0)
+-- Returns: Matching products sorted by creation date (newest first)
+-- Notes: Uses unaccent for diacritic-insensitive search
+PREPARE search_products (TEXT, UUID, DECIMAL, DECIMAL, INT, INT) AS
+    SELECT *
+    FROM "Product"
+    WHERE
+        ($1 IS NULL OR
+         to_tsvector('vietnamese_unaccent', name) @@ to_tsquery('simple', unaccent($1)) OR
+         to_tsvector('vietnamese_unaccent', description) @@ to_tsquery('simple', unaccent($1)))
+    AND ($2 IS NULL OR category_id = $2)
+    AND ($3 IS NULL OR price >= $3)
+    AND ($4 IS NULL OR price <= $4)
+    ORDER BY created_at DESC
+    LIMIT COALESCE($5, 1000) -- Default limit if NULL
+    OFFSET COALESCE($6, 0);  -- Default offset if NULL
+
+-- Purpose: Update product stock quantity (increase/decrease)
+-- Frequency: High (on purchases, cancellations, restocks)
+-- Parameters:
+--   p_product_id: Product to update
+--   p_quantity_change: Positive to add stock, negative to remove
+-- Returns: Updated product info including new stock level
+-- Throws: If product not found or stock would go negative
+PREPARE update_product_stock (UUID, INT) AS
+    UPDATE "Product"
+    SET stock_quantity = stock_quantity + $2,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = $1
+    AND (stock_quantity + $2) >= 0 -- Prevent negative stock
+    RETURNING 
+        id, 
+        name, 
+        stock_quantity AS new_quantity,
+        price,
+        category_id;
+
+-- Purpose: Get reviews for a product with filtering options
+-- Frequency: High (product detail views)
+-- Parameters:
+--   p_product_id: Product to get reviews for
+--   p_min_rating: Minimum rating to include (NULL for all)
+--   p_limit: Results per page (NULL for no limit)
+--   p_offset: Pagination offset (NULL starts from 0)
+-- Returns: Reviews with user info, sorted newest first
+PREPARE get_product_reviews (UUID, INT, INT, INT) AS
+    SELECT 
+        r.id, 
+        r.rating, 
+        r.comment, 
+        r.created_at, 
+        u.id AS user_id,
+        u.name AS user_name,
+        u.email AS user_email
+    FROM "Review" r
+    JOIN "User" u ON r.user_id = u.id
+    WHERE 
+        r.product_id = $1
+        AND ($2 IS NULL OR r.rating >= $2)
+    ORDER BY r.created_at DESC
+    LIMIT COALESCE($3, 20) -- Default to 20 reviews per page
+    OFFSET COALESCE($4, 0); -- Default to first page
+
+----------------------------------------------------------------------
+-- 3. Truy vấn Lấy Đơn Hàng Theo Trạng Thái
+----------------------------------------------------------------------
+
+PREPARE get_orders_by_status (UUID, VARCHAR, INT, INT) AS
+    SELECT 
+        id, 
+        user_id, 
+        status, 
+        total_amount,
+        created_at,
+        updated_at
+    FROM "Order"
+    WHERE
+        (user_id = $1 OR $1 IS NULL) -- $1 is NULL for admin queries
+    AND status = $2
+    ORDER BY created_at DESC
+    LIMIT $3 OFFSET $4; -- Added pagination support
+
+----------------------------------------------------------------------
+-- 3.1. Xử lý Đơn hàng (Order Processing)
+----------------------------------------------------------------------
+
+-- Tạo đơn hàng mới (Giả sử discount code có thể là NULL)
+PREPARE create_order (UUID, VARCHAR, DECIMAL, UUID) AS
+    WITH inserted_order AS (
+        INSERT INTO "Order" (user_id, status, total_amount, discount_code_id)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id
+    )
+    SELECT id FROM inserted_order;
+
+-- Thêm chi tiết đơn hàng
+PREPARE add_order_detail (UUID, UUID, INT, DECIMAL) AS
+    INSERT INTO "OrderDetail" (order_id, product_id, quantity, price_at_purchase)
+    VALUES ($1, $2, $3, $4)
+    ON CONFLICT (order_id, product_id) 
+    DO UPDATE SET 
+        quantity = EXCLUDED.quantity,
+        price_at_purchase = EXCLUDED.price_at_purchase;
+
+-- Lấy các đơn hàng của một người dùng cụ thể
+PREPARE get_user_orders (UUID, INT, INT) AS
+    SELECT 
+        o.id, 
+        o.status, 
+        o.total_amount, 
+        o.created_at,
+        COUNT(od.*) AS item_count,
+        MIN(p.name) AS sample_product_name
+    FROM "Order" o
+    LEFT JOIN "OrderDetail" od ON o.id = od.order_id
+    LEFT JOIN "Product" p ON od.product_id = p.id
+    WHERE o.user_id = $1
+    GROUP BY o.id
+    ORDER BY o.created_at DESC
+    LIMIT $2 OFFSET $3;
+
+-- Lấy thông tin cơ bản của một đơn hàng
+PREPARE get_order_info (UUID) AS
+    SELECT 
+        o.*,
+        u.name AS user_name,
+        u.email AS user_email,
+        dc.code AS discount_code
+    FROM "Order" o
+    LEFT JOIN "User" u ON o.user_id = u.id
+    LEFT JOIN "DiscountCode" dc ON o.discount_code_id = dc.id
+    WHERE o.id = $1;
+
+-- Lấy các sản phẩm (chi tiết) trong một đơn hàng
+PREPARE get_order_details (UUID) AS
+    SELECT 
+        od.product_id, 
+        od.quantity, 
+        od.price_at_purchase, 
+        p.name AS product_name,
+        p.price AS current_price,
+        (od.price_at_purchase * od.quantity) AS line_total,
+    FROM "OrderDetail" od
+    JOIN "Product" p ON od.product_id = p.id
+    WHERE od.order_id = $1
+    ORDER BY p.name;
+
+----------------------------------------------------------------------
+-- 4. Optimized Cart Operations
+----------------------------------------------------------------------
+
+-- Purpose: Add/update item in cart with stock validation
+-- Parameters: 
+--   $1: cart_id UUID
+--   $2: product_id UUID  
+--   $3: quantity INT (positive to add, negative to remove)
+-- Returns: Updated cart item info
+-- Notes: Uses advisory lock to prevent race conditions
+PREPARE add_or_update_cart_item (UUID, UUID, INT) AS
+WITH locked_product AS (
+    SELECT id, stock_quantity 
+    FROM "Product"
+    WHERE id = $2
+    FOR UPDATE -- Lock product row
+),
+validation AS (
+    SELECT 
+        $3 > 0 AS is_adding, -- Lớn hơn 0 là tăng số lượng
+        ($3 > 0 AND p.stock_quantity >= $3) AS has_stock, -- Kiểm tra tồn kho
+        (ci.quantity + $3) >= 0 AS valid_quantity -- Số lượng sp trong giỏ hợp lệ
+    FROM locked_product p
+    LEFT JOIN "CartItem" ci ON ci.cart_id = $1 AND ci.product_id = $2
+)
+INSERT INTO "CartItem" (cart_id, product_id, quantity)
+SELECT $1, $2, $3
+FROM validation v
+WHERE (v.is_adding AND v.has_stock) OR (NOT v.is_adding AND v.valid_quantity)
+ON CONFLICT (cart_id, product_id) 
+DO UPDATE SET quantity = "CartItem".quantity + $3
+RETURNING cart_id, product_id, quantity;
+
+-- Purpose: Remove item from cart completely
+-- Parameters:
+--   $1: cart_id UUID
+--   $2: product_id UUID
+-- Returns: Count of removed items
+PREPARE remove_cart_item (UUID, UUID) AS
+DELETE FROM "CartItem"
+WHERE cart_id = $1 AND product_id = $2
+RETURNING 1; -- Return count for confirmation
+
+-- Purpose: Get cart contents with extended product info
+-- Parameters:
+--   $1: cart_id UUID
+--   $2: limit INT (pagination)
+--   $3: offset INT (pagination)  
+-- Returns: Cart items with product details and availability
+PREPARE get_cart_items (UUID, INT, INT) AS
+SELECT 
+    ci.product_id, 
+    ci.quantity,
+    p.name,
+    p.price,
+    p.stock_quantity,
+    (p.stock_quantity >= ci.quantity) AS in_stock,
+    (p.price * ci.quantity) AS line_total
+FROM "CartItem" ci
+JOIN "Product" p ON ci.product_id = p.id
+WHERE ci.cart_id = $1
+ORDER BY p.name
+LIMIT $2 OFFSET $3;
+
+-- Purpose: Get cart summary (total items, total value)
+-- Parameters:
+--   $1: cart_id UUID
+-- Returns: Cart metadata
+PREPARE get_cart_summary (UUID) AS
+SELECT 
+    COUNT(ci.*) AS item_count,
+    SUM(ci.quantity) AS total_quantity,
+    SUM(ci.quantity * p.price) AS subtotal,
+    MIN(p.stock_quantity >= ci.quantity) AS all_in_stock
+FROM "CartItem" ci
+JOIN "Product" p ON ci.product_id = p.id
+WHERE ci.cart_id = $1;
+
+
+----------------------------------------------------------------------
+-- 5. Truy vấn Kiểm Tra Tồn Kho
+----------------------------------------------------------------------
+
+PREPARE check_stock (UUID, INT) AS
+    SELECT stock_quantity >= $2 AS is_available
+    FROM "Product"
+    WHERE id = $1;
+
+----------------------------------------------------------------------
+-- 6. Truy vấn Cập Nhật Trạng Thái Đơn Hàng (Giống Procedure sp_update_order_status)
+----------------------------------------------------------------------
+
+PREPARE update_order_status (UUID, VARCHAR) AS
+    UPDATE "Order"
+    SET status = $2, updated_at = CURRENT_TIMESTAMP
+    WHERE id = $1;
+
+----------------------------------------------------------------------
+-- 7. Truy vấn Áp Dụng Mã Giảm Giá
+----------------------------------------------------------------------
+
+PREPARE apply_discount_code (VARCHAR, DECIMAL) AS
+    UPDATE "DiscountCode"
+    SET uses_count = uses_count + 1
+    WHERE
+        code = $1
+    AND CURRENT_DATE BETWEEN start_date AND end_date
+    AND (max_uses IS NULL OR uses_count < max_uses)
+    AND (min_order_value IS NULL OR $2 >= min_order_value)
+    RETURNING discount_percentage; -- Trả về % giảm giá nếu thành công
+
+----------------------------------------------------------------------
+-- 8. Truy vấn Lấy Địa Chỉ Mặc Định Của Người Dùng
+----------------------------------------------------------------------
+
+PREPARE get_default_address (UUID) AS
+    SELECT *
+    FROM "Address"
+    WHERE user_id = $1 AND is_default = TRUE;
+
+----------------------------------------------------------------------
+-- 9. Truy vấn Thống Kê Sản Phẩm Bán Chạy
+----------------------------------------------------------------------
+
+PREPARE get_top_selling_products (UUID, DATE, DATE) AS
+    SELECT p.id, p.name, SUM(od.quantity) AS total_sold
+    FROM "OrderDetail" od
+    JOIN "Product" p ON od.product_id = p.id
+    JOIN "Order" o ON od.order_id = o.id
+    WHERE
+        ($1 IS NULL OR p.category_id = $1) -- $1 là category_id, NULL nếu không lọc
+    AND o.created_at::date BETWEEN $2 AND $3 -- So sánh ngày
+    GROUP BY p.id, p.name -- Group by cả id và name
+    ORDER BY total_sold DESC
+    LIMIT 10; -- Lấy top 10 sản phẩm
+
+----------------------------------------------------------------------
+-- 10. Truy vấn Đăng Ký Người Dùng Mới
+----------------------------------------------------------------------
+-- Lưu ý: Việc tạo Cart và Wishlist thường phức tạp hơn và được xử lý tốt hơn bằng PROCEDURE
+-- như sp_register_user đã cung cấp. Tuy nhiên, nếu chỉ cần PREPARE cho việc insert User:
+PREPARE register_user_basic (VARCHAR, VARCHAR, VARCHAR, VARCHAR) AS
+    INSERT INTO "User" (name, email, sodienthoai, "password") -- Quote "password"
+    VALUES ($1, $2, $3, $4) -- $4 là mật khẩu đã hash
+    RETURNING id;
+-- Sau khi EXECUTE cái này, cần gọi logic khác (hoặc trigger) để tạo Cart/Wishlist.
+
+
+-- Đừng quên giải phóng các prepared statement khi không cần thiết (ví dụ khi đóng kết nối session)
+-- DEALLOCATE get_user_by_id;
+-- DEALLOCATE ALL;
 
