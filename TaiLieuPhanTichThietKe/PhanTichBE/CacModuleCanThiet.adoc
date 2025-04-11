@@ -1,0 +1,84 @@
+= Các Module Backend NestJS
+
+Dựa trên SRS và phân tích ERD, các module cần thiết cho backend NestJS bao gồm:
+
+== **1. Core Modules**
+
+[cols="1,4", options="header"]
+|===
+|Module                |Chức năng chính                                                                 
+
+| **Auth**              |Xử lý đăng ký, đăng nhập, xác thực JWT, tích hợp Clerk.                         
+| **User**              |Quản lý thông tin người dùng, phân quyền, liên kết với Role/Permission.        
+| **Role/Permission**   |Quản lý vai trò (admin, customer, shipper) và quyền truy cập (RBAC).           
+| **Product**           |CRUD sản phẩm, quản lý tồn kho, liên kết với Category và Promotion.            
+| **Category**          |Quản lý danh mục sản phẩm (thể thao, casual, giày da...).                      
+| **Order**             |Xử lý đơn hàng, trạng thái đơn hàng, tích hợp OrderDetail và Payment.         
+| **Cart**              |Quản lý giỏ hàng, thêm/xóa sản phẩm, liên kết với CartItem.                    
+| **Payment**           |Tích hợp Stripe/VNPay, xử lý thanh toán, liên kết với Order.                   
+| **Shipping**          |Theo dõi vận chuyển, xác nhận giao hàng (shipper), liên kết với Order.         
+| **Promotion**         |Quản lý chương trình khuyến mãi, liên kết với PromotionProduct.                
+| **DiscountCode**      |Tạo/xóa mã giảm giá, kiểm tra điều kiện áp dụng.                               
+| **Review**            |Xử lý đánh giá sản phẩm, tính toán rating trung bình.                         
+| **Wishlist**          |Quản lý danh sách mong muốn của người dùng.                                    
+| **Address**           |Quản lý địa chỉ giao hàng, địa chỉ mặc định.                                   
+|===
+
+== **2. Support Modules**
+
+[cols="1,4", options="header"]
+|===
+|Module                |Chức năng chính                                                                 
+
+| **Notification**      |Gửi email (Resend), thông báo trạng thái đơn hàng, wishlist.                   
+| **Statistics**        |Thống kê doanh thu, sản phẩm bán chạy, hiệu quả khuyến mãi.                   
+| **File**              |Upload ảnh sản phẩm, quản lý file (nếu có).                                   
+| **Config**            |Quản lý biến môi trường, cấu hình tích hợp (Stripe, Clerk, Resend).            
+| **Logger**            |Ghi log hệ thống, theo dõi lỗi.                                                
+| **Database**          |Khởi tạo kết nối MySQL/MongoDB, migration/seeding.                            
+| **Shared**            |Chứa utilities, decorators, interceptors, guards dùng chung.                  
+|===
+
+
+
+== **3. Module Đặc thù**
+
+[cols="1,4", options="header"]
+|===
+|Module                |Mô tả                                                                          
+
+| **Chat**              |Hỗ trợ nhắn tin giữa người dùng và admin (nếu triển khai real-time).           
+|===
+
+
+== **Giải thích**
+
+* **Auth + User + Role/Permission**: Tách biệt để đảm bảo tính bảo mật và linh hoạt trong phân quyền.
+* **Order + Payment + Shipping**: Nhóm module liên quan đến nghiệp vụ mua hàng, đảm bảo tính nhất quán.
+* **Promotion + DiscountCode**: Module riêng để dễ mở rộng chính sách khuyến mãi.
+* **Statistics**: Đáp ứng yêu cầu thống kê từ SRS (FR-011, FR-012, FR-025).
+* **Notification**: Tích hợp Resend để gửi email thông báo (FR-005, FR-019).
+
+
+== Lưu ý Triển khai
+- Sử dụng **CQRS** cho các nghiệp vụ phức tạp (ví dụ: xử lý đơn hàng).
+- Áp dụng **Clean Architecture** để tách biệt layers (UI, Domain, Infrastructure).
+- Triển khai **Redis** để caching giỏ hàng và thống kê.
+
+// Khối ví dụ code (tùy chọn)
+[source,typescript]
+----
+// Ví dụ Service Order
+@Injectable()
+export class OrderService {
+  constructor(
+    private paymentService: PaymentService,
+    private shippingService: ShippingService
+  ) {}
+
+  async createOrder(orderDto: CreateOrderDto) {
+    const payment = await this.paymentService.process(orderDto);
+    const shipping = await this.shippingService.schedule(orderDto);
+    return { ...payment, ...shipping };
+  }
+}
