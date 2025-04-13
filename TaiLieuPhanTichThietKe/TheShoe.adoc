@@ -16,7 +16,14 @@ Website bán giày trực tuyến sẽ hỗ trợ các chức năng như:
 
 * Hiễn thị chi tiết sản phầm
 
-* Tìm kiếm giày theo tên, loại, thương hiệu, giá cả, kích thước
+* Tìm kiếm giày :
+. Cơ bản:
+    theo tên
+. Nâng cao: theo loại(catelogy), collection, giá cả, kích thước, màu sắc, chất liệu, tag(men, women, sale, new, ...)
+
+* Lọc sản phẩm: theo loại(catelogy), collection, giá cả, kích thước, màu sắc, chất liệu, tag(men, women, sale, new, ...)
+
+* Đăng ký tài khoản với email, số điện thoại, tài khoản google
 
 * Đặt hàng và thanh toán trực tuyến (khi đã đăng ký tài khoản)
 
@@ -24,7 +31,7 @@ Website bán giày trực tuyến sẽ hỗ trợ các chức năng như:
 
 * Thêm sản phẩm vào giỏ hàng
 
-* Đăng ký wishlist(Đăng ký nhận thông báo về sản phẩm mới)
+* Đăng ký wishlist(Đăng ký nhận thông báo về sản phẩm mới, khi đã đăng ký tài khoản)
 
 * Khách hàng xem lại các đơn hàng đã mua, đã hủy, đang giao, chờ xác nhận
 
