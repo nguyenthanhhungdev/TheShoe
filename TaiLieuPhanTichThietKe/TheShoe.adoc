@@ -33,6 +33,15 @@ Website bán giày trực tuyến sẽ hỗ trợ các chức năng như:
 
 * Đăng ký wishlist(Đăng ký nhận thông báo về sản phẩm mới, khi đã đăng ký tài khoản)
 
+* Đánh giá sản phẩm
+
+* Theo dõi đơn hàng: trạng thái đơn hàng, lịch sử đơn hàng
+
+* Nhận thông báo từ hệ thống
+
+* Thêm sản phẩm vào danh sách yêu thích
+
+
 * Khách hàng xem lại các đơn hàng đã mua, đã hủy, đang giao, chờ xác nhận
 
 * Phản hồi, đánh giá sản phẩm
@@ -124,11 +133,11 @@ Tài liệu bao gồm mô tả tổng quan hệ thống, các yêu cầu chức 
 
 Website là một hệ thống thương mại điện tử độc lập.
 
-Kiến trúc hệ thống theo mô hình **MVC** với backend REST API **Django**.
+Kiến trúc hệ thống theo mô hình **MVC** với backend REST API **NestJS**.
 
-Dữ liệu được lưu trữ trong **MySQL**.
+Dữ liệu được lưu trữ trong **PostgresSQL**.
 
-Hỗ trợ tích hợp với hệ thống thanh toán bên thứ ba như **VNPay**, **Stripe**.
+Hỗ trợ tích hợp với hệ thống thanh toán bên thứ ba như **Stripe**.
 
 Xác thực người dùng bằng **Clerk**
 
@@ -171,28 +180,38 @@ Tính năng gửi email phụ thuộc vào hệ thống thứ ba: Resend
 | ID | Tên yêu cầu | Mô tả
 | FR-001 | Đăng ký người dùng | Người dùng có thể đăng ký tài khoản bằng email, số điện thoại, tài khoản google; Sử dụng Clerk.
 | FR-002 | Đăng nhập | Hỗ trợ đăng nhập bằng mật khẩu và tài khoản google.
-| FR-003 | Tìm kiếm sản phẩm | Người dùng có thể tìm kiếm sản phẩm theo tên, danh mục, loại, thương hiệu, giá cả, kích thước.
-| FR-004 | Giỏ hàng | Người dùng có thể thêm/xóa sản phẩm vào giỏ hàng.
-| FR-005 | Wishlist | Người dùng có thể đăng ký nhận thông báo về các sản phẩm chuẩn bị về; Dùng Resend để gửi email thông báo
-| FR-006 | Thanh toán | Hỗ trợ thanh toán bằng thẻ tín dụng, ví điện tử, tiền mặt; Dùng Stripe để hổ trợ thanh toán online.
-| FR-007 | Quản lý đơn hàng | Người dùng có thể kiểm tra trạng thái đơn hàng, các đơn hàng đã mua, đã hủy, đã giao.
-| FR-008 | Quản trị sản phẩm | Admin có thể thêm, sửa, xóa sản phẩm.
-| FR-009 | Quản lý người dùng | Admin có thể tạo các tài khoản cho shipper.
-| FR-010 | Quản lý quyền người dùng | Admin có cấp quyền các tài khoản của người dùng.
-| FR-011 | Thống kê tình hình kinh doanh trong một khoảng thời gian của các sản phẩm thuộc một loại  | Admin xem biểu đồ lợi nhuận của một loại giày.
-| FR-012 | Thống kê tình hình kinh doanh trong một khoảng thời gian của tất cả sản phẩm | Admin xem biểu đồ lợi nhuận của trang web
-| FR-013 | Quản lý danh mục sản phẩm | Admin có thể thêm sửa xóa danh mục sản phẩm như: sport, casual, giày da, giày lười.
-| FR-014 | Quản lý khuyến mãi | Admin có thể tạo, sửa, xóa chương trình khuyến mãi.
-| FR-015 | Phản hồi khách hàng | Admin xem, xử lý phản hồi từ khách hàng.
-| FR-016 | Nhắn tin với quản trị viên | Người dùng gửi tin nhắn cho quản trị viên.
-| FR-017 | Đánh giá sản phẩm | Người dùng đánh giá sản phẩm.
-| FR-018 | Xác nhận giao hàng | Shipper xác nhận đã giao hàng thành công.
-| FR-019 | Xem thông báo | Người dùng xem thông báo từ hệ thống.
-| FR-020 | Không cần đăng nhập khi mua hàng | Người dùng có thể mua hàng với tư cách khách vãng lai.
-| FR-021 | Quản lí mã giảm giá | Admin có thể tạo, sửa, xóa mã giảm giá.
-| FR-023 | Mua hàng từ trang sản phẩm | Người dùng mua hàng từ trang sản phẩm.
-| FR-024 | Mua hàng từ trang giỏ hàng | Người dùng mua hàng từ trang giỏ hàng.
-| FR-025 | Dashboard theo dõi | Admin xem báo cáo hiệu quả của từng chương trình khuyến mãi.
+| FR-003 | Duyệt danh mục sản phẩm | Hiển thị danh mục sản phẩm một cách trực quan, cho phép người dùng dễ dàng duyệt qua các sản phẩm.
+| FR-004 | Hiển thị chi tiết sản phẩm | Hiển thị đầy đủ thông tin về sản phẩm như: hình ảnh, mô tả, giá cả, kích cỡ, màu sắc, v.v.
+| FR-005 | Tìm kiếm sản phẩm cơ bản | Người dùng có thể tìm kiếm sản phẩm theo tên.
+| FR-006 | Tìm kiếm sản phẩm nâng cao | Người dùng có thể tìm kiếm sản phẩm theo danh mục (category), loại (tag), giá cả, collection.
+| FR-007 | Lọc sản phẩm | Người dùng có thể lọc sản phẩm theo loại (category), collection, giá cả, kích thước, màu sắc, chất liệu, tag (men, women, sale, new).
+| FR-008 | Giỏ hàng | Người dùng có thể thêm/xóa sản phẩm vào giỏ hàng.
+| FR-009 | Wishlist | Người dùng có thể đăng ký nhận thông báo về các sản phẩm chuẩn bị về; Dùng Resend để gửi email thông báo.
+| FR-010 | Danh sách yêu thích (Favorites) | Người dùng có thể thêm sản phẩm vào danh mục yêu thích.
+| FR-011 | Đánh giá sản phẩm | Người dùng có thể đánh giá và viết nhận xét về sản phẩm đã mua.
+| FR-012 | Áp dụng khuyến mãi | Người dùng có thể áp dụng các chương trình khuyến mãi, mã giảm giá khi mua hàng.
+| FR-013 | Áp dụng nhiều mã giảm giá | Hệ thống hỗ trợ áp dụng nhiều mã giảm giá cùng lúc cho một đơn hàng.
+| FR-014 | Thanh toán | Hỗ trợ thanh toán bằng thẻ tín dụng, ví điện tử, tiền mặt; Dùng Stripe để hỗ trợ thanh toán online.
+| FR-015 | Theo dõi đơn hàng | Người dùng có thể theo dõi trạng thái đơn hàng, lịch sử đơn hàng.
+| FR-016 | Quản lý đơn hàng | Người dùng có thể kiểm tra các đơn hàng đã mua, đã hủy, đang giao, chờ xác nhận.
+| FR-017 | Nhận thông báo | Người dùng xem thông báo từ hệ thống.
+| FR-018 | Nhắn tin với quản trị viên | Người dùng gửi tin nhắn cho quản trị viên.
+| FR-019 | Không cần đăng nhập khi mua hàng | Người dùng có thể mua hàng với tư cách khách vãng lai.
+| FR-020 | Mua hàng từ trang sản phẩm | Người dùng có thể mua hàng trực tiếp từ trang chi tiết sản phẩm.
+| FR-021 | Mua hàng từ trang giỏ hàng | Người dùng có thể mua hàng từ trang giỏ hàng.
+| FR-022 | Xác nhận giao hàng | Shipper xác nhận đã giao hàng thành công.
+| FR-023 | Quản trị sản phẩm | Admin có thể thêm, sửa, xóa sản phẩm.
+| FR-024 | Quản lý danh mục sản phẩm | Admin có thể thêm sửa xóa danh mục sản phẩm như: sport, casual, giày da, giày lười.
+| FR-025 | Quản lý đơn hàng (Admin) | Admin có thể xem các đơn hàng trong một khoảng thời gian, xem chi tiết một đơn hàng, đánh dấu đơn hàng đã xử lý hoặc chưa xử lý.
+| FR-026 | Quản lý người dùng | Admin có thể tạo các tài khoản cho shipper.
+| FR-027 | Quản lý quyền người dùng | Admin có thể cấp quyền cho các tài khoản người dùng một cách linh động.
+| FR-028 | Thống kê theo loại sản phẩm | Admin xem biểu đồ lợi nhuận của một loại giày trong một khoảng thời gian.
+| FR-029 | Thống kê tổng thể | Admin xem biểu đồ lợi nhuận của toàn bộ trang web trong một khoảng thời gian.
+| FR-030 | Thống kê sản phẩm bán chạy | Admin xem thống kê sản phẩm bán chạy theo khoảng thời gian.
+| FR-031 | Quản lý khuyến mãi | Admin có thể tạo, sửa, xóa chương trình khuyến mãi.
+| FR-032 | Quản lý mã giảm giá | Admin có thể tạo, sửa, xóa mã giảm giá.
+| FR-033 | Dashboard theo dõi | Admin xem báo cáo hiệu quả của từng chương trình khuyến mãi, bao gồm số lượng đơn hàng tạo ra, doanh thu tăng thêm, số lượt sử dụng.
+| FR-034 | Phản hồi khách hàng | Admin xem, xử lý phản hồi từ khách hàng.
 |===
 
 === Non-Functional Requirements
