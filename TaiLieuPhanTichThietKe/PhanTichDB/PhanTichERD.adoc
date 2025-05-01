@@ -21,7 +21,10 @@ Tập thực thể đầy đủ của hệ thống bao gồm:
 . Promotion (Khuyến mãi): Các chương trình khuyến mãi.
 . DiscountCode (Mã giảm giá): Mã giảm giá áp dụng cho đơn hàng.
 . Review (Đánh giá): Đánh giá của người dùng về sản phẩm.
-. Wishlist (Danh sách mong muốn): Danh sách sản phẩm người dùng muốn mua.
+. Wishlist (Danh sách mong muốn): Danh sách sản phẩm người dùng muốn nhận thông báo.
+. ProductImage (Hình ảnh sản phẩm): Lưu trữ hình ảnh của sản phẩm.
+. Collection (Bộ sưu tập): Đại diện cho các bộ sưu tập sản phẩm (VD: mùa hè, mùa đông).
+. Favourite (Yêu thích): Danh sách sản phẩm yêu thích của người dùng.
 
 === 2.2. Bước 2: Xác định mối quan hệ
 
@@ -31,17 +34,35 @@ Tập thực thể đầy đủ của hệ thống bao gồm:
 - User - Order: Một người dùng có thể đặt nhiều đơn hàng (1:N). Lưu ý: Đơn hàng của khách vãng lai sẽ có user_id = NULL.
 - User - Cart: Một người dùng có một giỏ hàng (1:1).
 - User - Wishlist: Một người dùng có một danh sách mong muốn (1:1).
+- User - Favourite: Một người dùng có thể có nhiều sản phẩm yêu thích (1:N).
 - Product - Category: Một sản phẩm thuộc một danh mục, một danh mục có thể chứa nhiều sản phẩm (1:N).
 - Product - Review: Một sản phẩm có thể có nhiều đánh giá, một đánh giá thuộc về một sản phẩm (1:N).
+- Product - ProductImage: Một sản phẩm có thể có nhiều hình ảnh, một hình ảnh thuộc về một sản phẩm (1:N).
+- Product - Favourite: Một sản phẩm có thể được nhiều người yêu thích, một mục yêu thích thuộc về một sản phẩm (1:N).
+- Collection - Product: Một bộ sưu tập có thể chứa nhiều sản phẩm, một sản phẩm có thể thuộc nhiều bộ sưu tập (N:M). Cần bảng trung gian **CollectionProduct**.
 - Order - Product: Một đơn hàng có thể chứa nhiều sản phẩm, một sản phẩm có thể xuất hiện trong nhiều đơn hàng (N:M). Cần bảng trung gian **OrderDetail**.
 - Order - DiscountCode: Một đơn hàng có thể sử dụng một hoặc nhiều mã giảm giá, một mã giảm giá có thể được sử dụng cho nhiều đơn hàng (N:M). Cần bảng trung gian **DiscountCodeUses**.
 - Order - Address: Một đơn hàng có thể có một địa chỉ giao hàng, một địa chỉ có thể được sử dụng cho nhiều đơn hàng (1:N).
-- **Wishlist - Product:** Một danh sách mong muốn có thể chứa nhiều sản phẩm, một sản phẩm có thể nằm trong nhiều danh sách mong muốn (N:M). Cần bảng trung gian **WishlistItem**.
+- Wishlist - Product: Một danh sách mong muốn có thể chứa nhiều sản phẩm, một sản phẩm có thể nằm trong nhiều danh sách mong muốn (N:M). Cần bảng trung gian **WishlistItem**.
 
 **Ghi chú về Review:**
 - Để đảm bảo rằng chỉ những người dùng đã mua sản phẩm mới có thể đánh giá, logic kiểm tra sẽ được thực hiện trong ứng dụng bằng cách kiểm tra lịch sử mua hàng của người dùng (qua Order và OrderDetail) trước khi cho phép viết đánh giá. Không cần thêm mối quan hệ trực tiếp giữa Review và Order trong ERD.
 
 === 2.3. Bước 3: Xác định thuộc tính cho thực thể
+
+- *Product:*
+  ** id (PK): Mã sản phẩm.
+  ** category_id (FK): Mã danh mục.
+  ** name: Tên sản phẩm.
+  ** description: Mô tả.
+  ** price: Giá sản phẩm.
+  ** stock: Số lượng tồn kho.
+  ** tags: Danh sách tag (VD: men, women, sale, new).
+  ** color: Màu sắc.
+  ** size: Kích thước.
+  ** material: Chất liệu.
+  ** created_at: Thời gian tạo.
+  ** updated_at: Thời gian cập nhật.
 
 - *Category:*
   ** id (PK): Mã danh mục.
@@ -141,6 +162,27 @@ Tập thực thể đầy đủ của hệ thống bao gồm:
   ** wishlist_id (PK, FK): Mã danh sách mong muốn.
   ** product_id (PK, FK): Mã sản phẩm.
 
+- *ProductImage:*
+  ** id (PK): Mã hình ảnh.
+  ** product_id (FK): Mã sản phẩm.
+  ** image_url: Đường dẫn hình ảnh.
+  ** is_primary: Hình ảnh chính (true/false).
+  ** created_at: Thời gian tạo.
+  ** updated_at: Thời gian cập nhật.
+
+- *Collection:*
+  ** id (PK): Mã bộ sưu tập.
+  ** name: Tên bộ sưu tập.
+  ** description: Mô tả.
+  ** created_at: Thời gian tạo.
+  ** updated_at: Thời gian cập nhật.
+
+- *Favourite:*
+  ** id (PK): Mã yêu thích.
+  ** user_id (FK): Mã người dùng.
+  ** product_id (FK): Mã sản phẩm.
+  ** created_at: Thời gian tạo.
+
 * Bảng trung gian:
 
 - *OrderDetail:*
@@ -175,7 +217,24 @@ Tập thực thể đầy đủ của hệ thống bao gồm:
   ** wishlist_id (PK, FK): Mã danh sách mong muốn.
   ** product_id (PK, FK): Mã sản phẩm.
 
+- *CollectionProduct:*
+  ** collection_id (PK, FK): Mã bộ sưu tập.
+  ** product_id (PK, FK): Mã sản phẩm.
+
 === 2.4. Bước 4: Quyết định miền giá trị cho thuộc tính
+
+- *Product:*
+  ** id: UUID hoặc INT AUTO_INCREMENT.
+  ** category_id: UUID hoặc INT.
+  ** name: VARCHAR(100).
+  ** description: TEXT.
+  ** price: DECIMAL.
+  ** stock: INT.
+  ** tags: VARCHAR(255) hoặc JSON.
+  ** color: VARCHAR(50).
+  ** size: VARCHAR(50).
+  ** material: VARCHAR(100).
+  ** created_at, updated_at: TIMESTAMP.
 
 - *Role:*
   ** id: UUID hoặc INT AUTO_INCREMENT.
@@ -206,6 +265,29 @@ Tập thực thể đầy đủ của hệ thống bao gồm:
   ** wishlist_id: UUID hoặc INT (tương ứng với Wishlist.id).
   ** product_id: UUID hoặc INT (tương ứng với Product.id).
 
+- *ProductImage:*
+  ** id: UUID hoặc INT AUTO_INCREMENT.
+  ** product_id: UUID hoặc INT (tương ứng với Product.id).
+  ** image_url: VARCHAR(255).
+  ** is_primary: BOOLEAN.
+  ** created_at, updated_at: TIMESTAMP.
+
+- *Collection:*
+  ** id: UUID hoặc INT AUTO_INCREMENT.
+  ** name: VARCHAR(100).
+  ** description: TEXT.
+  ** created_at, updated_at: TIMESTAMP.
+
+- *Favourite:*
+  ** id: UUID hoặc INT AUTO_INCREMENT.
+  ** user_id: UUID hoặc INT (tương ứng với User.id).
+  ** product_id: UUID hoặc INT (tương ứng với Product.id).
+  ** created_at: TIMESTAMP.
+
+- *CollectionProduct:*
+  ** collection_id: UUID hoặc INT (tương ứng với Collection.id).
+  ** product_id: UUID hoặc INT (tương ứng với Product.id).
+
 - Các thuộc tính khác:
   ** id: UUID hoặc INT AUTO_INCREMENT.
   ** name, description, street, city, state, country, comment: VARCHAR.
@@ -220,12 +302,12 @@ Tập thực thể đầy đủ của hệ thống bao gồm:
 
 === 2.5. Bước 5: Xác định thuộc tính khóa
 
+- *Product:* Khóa chính: id, khóa ngoại: category_id → Category.id.
 - *Role:* Khóa chính: id.
 - *Permission:* Khóa chính: id.
 - *UserRole:* Khóa chính tổ hợp: (user_id, role_id), khóa ngoại: user_id → User.id, role_id → Role.id.
 - *RolePermission:* Khóa chính tổ hợp: (role_id, permission_id), khóa ngoại: role_id → Role.id, permission_id → Permission.id.
 - *User:* Khóa chính: id.
-- *Product:* Khóa chính: id, khóa ngoại: category_id → Category.id.
 - *Category:* Khóa chính: id.
 - *Order:* Khóa chính: id, khóa ngoại: user_id → User.id.
 - *Cart:* Khóa chính: id, khóa ngoại: user_id → User.id.
@@ -238,6 +320,10 @@ Tập thực thể đầy đủ của hệ thống bao gồm:
 - *Review:* Khóa chính: id, khóa ngoại: user_id → User.id, product_id → Product.id.
 - *Wishlist:* Khóa chính: id, khóa ngoại: user_id → User.id.
 - *WishlistItem:* Khóa chính tổ hợp: (wishlist_id, product_id), khóa ngoại: wishlist_id → Wishlist.id, product_id → Product.id.
+- *ProductImage:* Khóa chính: id, khóa ngoại: product_id → Product.id.
+- *Collection:* Khóa chính: id.
+- *Favourite:* Khóa chính: id, khóa ngoại: user_id → User.id, product_id → Product.id.
+- *CollectionProduct:* Khóa chính tổ hợp: (collection_id, product_id), khóa ngoại: collection_id → Collection.id, product_id → Product.id.
 
 === 2.6. Bước 6: Xác định ràng buộc (tỉ số, min-max, ràng buộc tham gia)
 
@@ -265,6 +351,10 @@ Tập thực thể đầy đủ của hệ thống bao gồm:
 ** Tỉ số: 1:1.
 ** Min-max: Một người dùng có đúng 1 danh sách mong muốn, một danh sách thuộc về đúng 1 người dùng.
 
+- *User - Favourite:*
+** Tỉ số: 1:N.
+** Min-max: Một người dùng có thể có 0 hoặc nhiều sản phẩm yêu thích, một mục yêu thích thuộc về đúng 1 người dùng.
+
 - *Product - Category:*
 ** Tỉ số: N:1.
 ** Min-max: Một sản phẩm thuộc về đúng 1 danh mục, một danh mục có thể có 0 hoặc nhiều sản phẩm.
@@ -272,6 +362,18 @@ Tập thực thể đầy đủ của hệ thống bao gồm:
 - *Product - Review:*
 ** Tỉ số: 1:N.
 ** Min-max: Một sản phẩm có thể có 0 hoặc nhiều đánh giá, một đánh giá thuộc về đúng 1 sản phẩm.
+
+- *Product - ProductImage:*
+** Tỉ số: 1:N.
+** Min-max: Một sản phẩm có thể có 0 hoặc nhiều hình ảnh, một hình ảnh thuộc về đúng 1 sản phẩm.
+
+- *Product - Favourite:*
+** Tỉ số: 1:N.
+** Min-max: Một sản phẩm có thể được 0 hoặc nhiều người yêu thích, một mục yêu thích thuộc về đúng 1 sản phẩm.
+
+- *Collection - Product (qua CollectionProduct):*
+** Tỉ số: N:M.
+** Min-max: Một bộ sưu tập có thể chứa 0 hoặc nhiều sản phẩm, một sản phẩm có thể thuộc 0 hoặc nhiều bộ sưu tập.
 
 - *Order - Product:*
 ** Tỉ số: N:M (qua OrderDetail).
