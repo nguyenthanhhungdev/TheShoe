@@ -1,0 +1,327 @@
+= Báo Cáo Các Module Cần Thiết Cho Dự Án BE Website Bán Giày Trực Tuyến
+
+Dựa trên tài liệu SRS (*Software Requirement Specification*) của website bán giày trực tuyến, báo cáo này liệt kê các module cần thiết để phát triển backend (BE) sử dụng framework NestJS. Các module được thiết kế để đáp ứng các yêu cầu chức năng (Functional Requirements - FR) và hỗ trợ hệ thống vận hành hiệu quả.
+
+== Các Module Cần Thiết
+
+=== 1. Module Người Dùng (User Module)
+Chức năng chính::
+- Đăng ký người dùng (FR-001)
+- Đăng nhập (FR-002)
+- Quản lý tài khoản người dùng (FR-026, FR-027)
+- Phân quyền người dùng (FR-027)
+API::
+- `POST /users/register` - Đăng ký người dùng
+- `POST /users/login` - Đăng nhập
+- `GET /users/:id` - Lấy thông tin người dùng
+- `PUT /users/:id` - Cập nhật thông tin người dùng
+- `POST /users/roles` - Phân quyền người dùng
+
+=== 2. Module Sản Phẩm (Product Module)
+Chức năng chính::
+- Quản lý sản phẩm (FR-023)
+- Quản lý danh mục sản phẩm (FR-024)
+- Tìm kiếm sản phẩm (FR-005, FR-006)
+- Lọc sản phẩm (FR-007)
+- Đánh giá sản phẩm (FR-011)
+API::
+- `POST /products` - Thêm sản phẩm
+- `PUT /products/:id` - Sửa sản phẩm
+- `DELETE /products/:id` - Xóa sản phẩm
+- `GET /products` - Lấy danh sách sản phẩm
+- `GET /products/search` - Tìm kiếm sản phẩm
+- `GET /products/filter` - Lọc sản phẩm
+- `POST /products/:id/reviews` - Đánh giá sản phẩm
+
+=== 3. Module Giỏ Hàng (Cart Module)
+Chức năng chính::
+- Thêm/xóa sản phẩm vào giỏ hàng (FR-008)
+- Mua hàng từ giỏ hàng (FR-021)
+API::
+- `POST /cart` - Thêm sản phẩm vào giỏ hàng
+- `DELETE /cart/:itemId` - Xóa sản phẩm khỏi giỏ hàng
+- `GET /cart` - Lấy thông tin giỏ hàng
+- `POST /cart/checkout` - Mua hàng từ giỏ hàng
+
+=== 4. Module Đơn Hàng (Order Module)
+Chức năng chính::
+- Đặt hàng và thanh toán (FR-014)
+- Theo dõi đơn hàng (FR-015, FR-016)
+- Quản lý đơn hàng (FR-025)
+- Xác nhận giao hàng (FR-022)
+API::
+- `POST /orders` - Tạo đơn hàng
+- `GET /orders/:id` - Lấy thông tin đơn hàng
+- `PUT /orders/:id/status` - Cập nhật trạng thái đơn hàng
+- `PUT /orders/:id/confirm-delivery` - Xác nhận giao hàng
+
+=== 5. Module Thanh Toán (Checkout Module)
+Chức năng chính::
+- Thanh toán trực tuyến (FR-014)
+API::
+- `POST /checkout` - Tạo thanh toán
+- `POST /checkout/confirm` - Xác nhận thanh toán
+- `POST /checkout/cancel` - Hủy thanh toán
+- `GET /checkout/status` - Lấy trạng thái thanh toán
+- `POST /checkout/callback` - Nhận callback từ dịch vụ thanh toán
+- `GET /checkout/history` - Lấy lịch sử thanh toán
+- `GET /checkout/invoice/:id` - Lấy hóa đơn thanh toán
+
+=== 6. Module Khuyến Mãi (Promotion Module)
+Chức năng chính::
+- Áp dụng khuyến mãi (FR-012, FR-013)
+- Quản lý khuyến mãi (FR-031, FR-032)
+API::
+- `POST /promotions/apply` - Áp dụng mã giảm giá
+- `POST /promotions` - Tạo khuyến mãi
+- `PUT /promotions/:id` - Sửa khuyến mãi
+- `DELETE /promotions/:id` - Xóa khuyến mãi
+
+=== 7. Module Thông Báo (Notification Module)
+Chức năng chính::
+- Nhận thông báo (FR-017)
+- Gửi email thông báo (FR-009)
+API::
+- `POST /notifications` - Gửi thông báo
+- `GET /notifications` - Lấy danh sách thông báo
+
+=== 8. Module Wishlist (Wishlist Module)
+Chức năng chính::
+- Đăng ký wishlist (FR-009)
+- Quản lý danh sách yêu thích (FR-010)
+API::
+- `POST /wishlist` - Thêm vào wishlist
+- `DELETE /wishlist/:itemId` - Xóa khỏi wishlist
+- `GET /wishlist` - Lấy danh sách wishlist
+
+=== 9. Module Phản Hồi (Feedback Module)
+Chức năng chính::
+- Phản hồi khách hàng (FR-034)
+- Nhắn tin với quản trị viên (FR-018)
+API::
+- `POST /feedback` - Gửi phản hồi
+- `GET /feedback` - Lấy danh sách phản hồi
+- `POST /messages` - Nhắn tin với quản trị viên
+
+=== 10. Module Thống Kê (Analytics Module)
+Chức năng chính::
+- Thống kê theo loại sản phẩm (FR-028)
+- Thống kê tổng thể (FR-029)
+- Thống kê sản phẩm bán chạy (FR-030)
+- Dashboard theo dõi khuyến mãi (FR-033)
+API::
+- `GET /analytics` - Lấy dữ liệu thống kê
+
+=== 11. Module Quản Lý Collection (Collection Module)
+Chức năng chính::
+- Tạo, sửa, xóa collection (ví dụ: "Giày thể thao mùa hè", "Bộ sưu tập Limited Edition").
+- Liên kết sản phẩm với collection (FR-006, FR-007).
+API::
+- `POST /collections` - Tạo collection
+- `PUT /collections/:id` - Cập nhật collection
+- `DELETE /collections/:id` - Xóa collection
+- `GET /collections` - Lấy danh sách collection
+- `POST /collections/:id/products` - Thêm sản phẩm vào collection
+
+=== 12. Module Xác Thực (Auth Module)
+Chức năng chính::
+- Xác thực người dùng (FR-001, FR-002)
+API::
+- `POST /auth/login` - Đăng nhập
+- `POST /auth/register` - Đăng ký
+- `POST /auth/refresh-token` - Làm mới token
+
+== Các Infrastructure Modules Cần Thiết
+
+=== 13. Module Cơ Sở Dữ Liệu (Database Module)
+Chức năng chính::
+- Quản lý kết nối và tương tác với cơ sở dữ liệu (PostgresSQL)
+- Hỗ trợ ORM (Object-Relational Mapping) để làm việc với dữ liệu
+API::
+- Không có API công khai, được sử dụng nội bộ bởi các module khác
+
+=== 15. Module Gửi Email - Resend (Email Service Module)
+Chức năng chính::
+- Gửi email thông báo (FR-009)
+- Sử dụng dịch vụ Resend để gửi email
+API::
+- `POST /email/send` - Gửi email
+
+=== 16. Module Ghi Log (Logging Module)
+Chức năng chính::
+- Ghi log các hoạt động của hệ thống
+- Hỗ trợ debug và theo dõi lỗi
+API::
+- Không có API công khai, được sử dụng nội bộ
+
+=== 17. Module Bộ Đệm (Cache Module)
+Chức năng chính::
+- Lưu trữ dữ liệu thường xuyên truy cập để cải thiện hiệu suất
+- Sử dụng Redis hoặc dịch vụ tương tự
+API::
+- Không có API công khai, được sử dụng nội bộ bởi các module khác
+
+=== 18. Module Lưu Trữ Tệp (File Storage Module)
+Chức năng chính::
+- Quản lý hình ảnh sản phẩm và các tệp tin khác
+- Sử dụng dịch vụ lưu trữ đám mây như AWS S3 hoặc Google Cloud Storage
+API::
+- `POST /files/upload` - Tải lên tệp tin
+- `GET /files/:id` - Lấy tệp tin
+
+=== 19. Module Tìm Kiếm (Search Module)
+Chức năng chính::
+- Hỗ trợ tính năng tìm kiếm nâng cao (FR-006)
+- Sử dụng Elasticsearch hoặc dịch vụ tương tự
+API::
+- `GET /search` - Tìm kiếm sản phẩm
+
+=== 20. Module Hàng Đợi Tin Nhắn (Message Queue Module)
+Chức năng chính::
+- Xử lý các tác vụ bất đồng bộ như gửi email, xử lý đơn hàng
+- Sử dụng RabbitMQ hoặc Kafka
+API::
+- Không có API công khai, được sử dụng nội bộ
+
+=== 21. Module Cổng API (API Gateway Module)
+Chức năng chính::
+- Quản lý và bảo vệ các API
+- Sử dụng NestJS Gateway hoặc dịch vụ bên ngoài
+API::
+- Không có API công khai, được sử dụng để định tuyến và bảo mật các API
+
+=== 22. Module Xử Lý Webhook (Webhook Handler Module)
+Chức năng chính::
+- Nhận và xử lý webhook từ các dịch vụ bên thứ ba (Stripe, Clerk, Resend).
+- Xác thực chữ ký webhook để đảm bảo an toàn.
+API::
+- `POST /webhooks/stripe` - Xử lý webhook từ Stripe (thanh toán)
+- `POST /webhooks/clerk` - Xử lý webhook từ Clerk (xác thực người dùng)
+- `POST /webhooks/resend` - Xử lý webhook từ Resend (trạng thái email)
+
+
+== Liên Kết Giữa Các Module
+
+Các module được thiết kế độc lập nhưng có sự tương tác chặt chẽ để đáp ứng các yêu cầu chức năng. Dưới đây là mô tả các liên kết chính giữa các module:
+
+- **Module Người Dùng (User Module)**:
+** Phụ thuộc vào **Auth Module** để xác thực đăng ký/đăng nhập (`POST /auth/login`, `POST /auth/register`).
+** Cung cấp thông tin người dùng cho **Order Module**, **Wishlist Module**, và **Feedback Module** để liên kết đơn hàng, wishlist, và phản hồi với tài khoản người dùng.
+** Sử dụng **Database Module** để lưu trữ và truy xuất dữ liệu người dùng.
+
+- **Module Sản Phẩm (Product Module)**:
+** Liên kết với **Collection Module** để gán sản phẩm vào collection, hỗ trợ tìm kiếm/lọc (FR-006, FR-007).
+** Cung cấp thông tin sản phẩm cho **Cart Module**, **Order Module**, và **Wishlist Module** để thêm sản phẩm vào giỏ hàng, đơn hàng, hoặc wishlist.
+** Sử dụng **Search Module** để thực hiện tìm kiếm nâng cao (FR-006).
+** Sử dụng **File Storage Module** để lưu trữ hình ảnh sản phẩm (FR-023).
+** Sử dụng **Cache Module** để lưu trữ dữ liệu sản phẩm nhằm tăng hiệu suất (FR-005, FR-006, FR-007).
+** Sử dụng **Database Module** để lưu trữ dữ liệu sản phẩm.
+
+- **Module Giỏ Hàng (Cart Module)**:
+** Phụ thuộc vào **Product Module** để lấy thông tin sản phẩm khi thêm vào giỏ hàng (FR-008).
+** Chuyển dữ liệu giỏ hàng sang **Order Module** để tạo đơn hàng (FR-021).
+** Gọi **Promotion Module** để áp dụng mã giảm giá (FR-012, FR-013).
+** Liên kết với **User Module** để gán giỏ hàng cho tài khoản người dùng (hoặc khách vãng lai cho FR-019).
+** Sử dụng **Database Module** để lưu trữ dữ liệu giỏ hàng.
+
+- **Module Đơn Hàng (Order Module)**:
+** Phụ thuộc vào **Product Module** để lấy thông tin sản phẩm cho đơn hàng (FR-014).
+** Nhận dữ liệu từ **Cart Module** để tạo đơn hàng từ giỏ hàng (FR-021).
+** Gọi **Payment Module** để xử lý thanh toán (FR-014).
+** Gọi **Promotion Module** để áp dụng khuyến mãi (FR-012, FR-013).
+** Liên kết với **User Module** để gán đơn hàng cho người dùng (hoặc khách vãng lai cho FR-019).
+** Gọi **Notification Module** để gửi thông báo về trạng thái đơn hàng (FR-017).
+** Nhận cập nhật từ **Webhook Handler Module** về trạng thái thanh toán hoặc giao hàng (FR-014, FR-022).
+** Sử dụng **Message Queue Module** để xử lý bất đồng bộ cập nhật trạng thái đơn hàng.
+** Sử dụng **Database Module** để lưu trữ dữ liệu đơn hàng.
+
+- **Module Thanh Toán (Payment Module)**:
+** Phụ thuộc vào **Order Module** để lấy thông tin đơn hàng cần thanh toán (FR-014).
+** Gọi **Payment Gateway Module** để gửi yêu cầu thanh toán đến Stripe/VNPay.
+** Nhận cập nhật từ **Webhook Handler Module** về trạng thái thanh toán.
+** Sử dụng **Database Module** để lưu trữ dữ liệu giao dịch.
+
+- **Module Khuyến Mãi (Promotion Module)**:
+** Được gọi bởi **Order Module** và **Cart Module** để áp dụng mã giảm giá (FR-012, FR-013).
+** Cung cấp dữ liệu khuyến mãi cho **Analytics Module** để tạo dashboard theo dõi (FR-033).
+** Sử dụng **Database Module** để lưu trữ dữ liệu khuyến mãi.
+
+- **Module Thông Báo (Notification Module)**:
+** Nhận yêu cầu từ **Order Module** để gửi thông báo về trạng thái đơn hàng (FR-017).
+** Nhận yêu cầu từ **Wishlist Module** để gửi thông báo về sản phẩm trong wishlist (FR-009).
+** Gọi **Email Service Module** để gửi email qua Resend (FR-009).
+** Sử dụng **Message Queue Module** để xử lý bất đồng bộ gửi thông báo.
+** Sử dụng **Database Module** để lưu trữ lịch sử thông báo.
+
+- **Module Wishlist (Wishlist Module)**:
+** Phụ thuộc vào **Product Module** để thêm sản phẩm vào wishlist (FR-010).
+** Liên kết với **User Module** để gán wishlist cho tài khoản người dùng (FR-009, FR-010).
+** Gọi **Notification Module** để gửi thông báo về sản phẩm trong wishlist (FR-009).
+** Sử dụng **Database Module** để lưu trữ dữ liệu wishlist.
+
+- **Module Phản Hồi (Feedback Module)**:
+** Liên kết với **User Module** để gán phản hồi/nhắn tin cho tài khoản người dùng (FR-018, FR-034).
+** Liên kết với **Product Module** để gán phản hồi cho sản phẩm (FR-011).
+** Sử dụng **Database Module** để lưu trữ dữ liệu phản hồi.
+
+- **Module Thống Kê (Analytics Module)**:
+** Phụ thuộc vào **Order Module** và **Product Module** để lấy dữ liệu đơn hàng và sản phẩm nhằm thống kê (FR-028, FR-029, FR-030).
+** Phụ thuộc vào **Promotion Module** để lấy dữ liệu khuyến mãi cho dashboard (FR-033).
+** Sử dụng **Database Module** để truy xuất dữ liệu phân tích.
+
+- **Module Xác Thực (Auth Module)**:
+** Cung cấp dịch vụ xác thực cho **User Module** để xử lý đăng ký/đăng nhập (FR-001, FR-002).
+** Liên kết với **API Gateway Module** để bảo vệ API bằng token xác thực.
+** Sử dụng **Database Module** để lưu trữ thông tin xác thực.
+
+- **Module Quản lý Collection (Collection Module)**:
+** Liên kết với **Product Module** để gán sản phẩm vào collection (FR-006, FR-007).
+** Gọi **Search Module** để hỗ trợ tìm kiếm sản phẩm theo collection (FR-006).
+** Sử dụng **Cache Module** để lưu trữ dữ liệu collection nhằm tăng hiệu suất.
+** Sử dụng **Database Module** để lưu trữ dữ liệu collection.
+
+- **Module Cơ Sở Dữ Liệu (Database Module)**:
+** Cung cấp lưu trữ và truy xuất dữ liệu cho tất cả các module chính và một số module cơ sở hạ tầng.
+
+- **Module Thanh Toán (Payment Gateway Module)**:
+** Được gọi bởi **Payment Module** để gửi yêu cầu thanh toán đến Stripe/VNPay (FR-014).
+** Gửi cập nhật trạng thái thanh toán đến **Webhook Handler Module**.
+** Sử dụng **Database Module** để lưu trữ dữ liệu giao dịch.
+
+- **Module Gửi Email (Email Service Module)**:
+** Được gọi bởi **Notification Module** để gửi email thông báo (FR-009).
+** Có thể nhận webhook từ Resend qua **Webhook Handler Module** (nếu cần).
+** Sử dụng **Message Queue Module** để xử lý bất đồng bộ gửi email.
+
+- **Module Ghi Log (Logging Module)**:
+** Nhận log từ tất cả các module để ghi lại hoạt động và lỗi.
+
+- **Module Bộ Đệm (Cache Module)**:
+** Được sử dụng bởi **Product Module**, **Collection Module**, và **Search Module** để lưu trữ dữ liệu thường xuyên truy cập (FR-005, FR-006, FR-007).
+** Đồng bộ dữ liệu với **Database Module**.
+
+- **Module Lưu Trữ Tệp (File Storage Module)**:
+** Được sử dụng bởi **Product Module** để lưu trữ hình ảnh sản phẩm (FR-023).
+** Sử dụng **Database Module** để lưu trữ thông tin tệp.
+
+- **Module Tìm Kiếm (Search Module)**:
+** Được gọi bởi **Product Module** và **Collection Module** để tìm kiếm sản phẩm theo tên, danh mục, hoặc collection (FR-006).
+** Sử dụng **Cache Module** để tăng hiệu suất tìm kiếm.
+
+- **Module Hàng Đợi Tin Nhắn (Message Queue Module)**:
+** Được sử dụng bởi **Notification Module**, **Order Module**, và **Email Service Module** để xử lý bất đồng bộ (FR-014, FR-017).
+** Liên kết với **Webhook Handler Module** để xử lý webhook bất đồng bộ.
+
+- **Module Cổng API (API Gateway Module)**:
+** Định tuyến và bảo vệ API cho tất cả các module chính.
+** Phụ thuộc vào **Auth Module** để kiểm tra token xác thực.
+
+- **Module Webhook Handler (Webhook Handler Module)**:
+** Nhận webhook từ **Payment Gateway Module** (Stripe/VNPay) và cập nhật trạng thái thanh toán cho **Order Module** (FR-014).
+** Nhận webhook từ **Email Service Module** (Resend, nếu có).
+** Nhận webhook giao hàng để cập nhật trạng thái đơn hàng trong **Order Module** (FR-022).
+** Sử dụng **Message Queue Module** để xử lý webhook bất đồng bộ.
+** Sử dụng **Database Module** để lưu trữ dữ liệu từ webhook
+
+== Tổng Kết
+Các module trên đáp ứng toàn bộ yêu cầu chức năng được liệt kê trong SRS. Các **Infrastructure Modules** bổ sung đảm bảo hệ thống có đầy đủ các thành phần cơ sở hạ tầng cần thiết để vận hành ổn định, bảo mật và hiệu quả. Mỗi module được thiết kế độc lập, tận dụng các tính năng của NestJS như *dependency injection*, *middleware*, và *guards* để đảm bảo tính bảo mật, hiệu suất và khả năng mở rộng của hệ thống.
