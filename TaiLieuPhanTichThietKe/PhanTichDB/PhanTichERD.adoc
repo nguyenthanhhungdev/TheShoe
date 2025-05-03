@@ -16,7 +16,7 @@ Tập thực thể đầy đủ của hệ thống bao gồm:
 . Order (Đơn hàng): Thông tin về đơn hàng của người dùng.
 . Cart (Giỏ hàng): Giỏ hàng của người dùng.
 . Address (Địa chỉ): Địa chỉ giao hàng hoặc thông tin liên hệ của người dùng.
-. Payment (Thanh toán): Thông tin thanh toán của đơn hàng.
+. Checkout (Thanh toán): Thông tin thanh toán của đơn hàng.
 . Shipping (Giao hàng): Thông tin vận chuyển liên quan đến đơn hàng.
 . Promotion (Khuyến mãi): Các chương trình khuyến mãi.
 . DiscountCode (Mã giảm giá): Mã giảm giá áp dụng cho đơn hàng.
@@ -102,7 +102,7 @@ Tập thực thể đầy đủ của hệ thống bao gồm:
   ** created_at: Thời gian tạo.
   ** updated_at: Thời gian cập nhật.
 
-- *Payment:*
+- *Checkout:*
   ** id (PK): Mã thanh toán.
   ** order_id (FK): Mã đơn hàng.
   ** amount: Số tiền thanh toán.
@@ -312,7 +312,7 @@ Tập thực thể đầy đủ của hệ thống bao gồm:
 - *Order:* Khóa chính: id, khóa ngoại: user_id → User.id.
 - *Cart:* Khóa chính: id, khóa ngoại: user_id → User.id.
 - *Address:* Khóa chính: id, khóa ngoại: user_id → User.id.
-- *Payment:* Khóa chính: id, khóa ngoại: order_id → Order.id.
+- *Checkout:* Khóa chính: id, khóa ngoại: order_id → Order.id.
 - *Shipping:* Khóa chính: id, khóa ngoại: order_id → Order.id.
 - *Promotion:* Khóa chính: id.
 - *DiscountCode:* Khóa chính: id.
@@ -379,7 +379,7 @@ Tập thực thể đầy đủ của hệ thống bao gồm:
 ** Tỉ số: N:M (qua OrderDetail).
 ** Min-max: Một đơn hàng có thể chứa 1 hoặc nhiều sản phẩm, một sản phẩm có thể xuất hiện trong 0 hoặc nhiều đơn hàng.
 
-- *Order - Payment:*
+- *Order - Checkout:*
 ** Tỉ số: 1:1.
 ** Min-max: Một đơn hàng có đúng 1 thanh toán, một thanh toán thuộc về đúng 1 đơn hàng.
 

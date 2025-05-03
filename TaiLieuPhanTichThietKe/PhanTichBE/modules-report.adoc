@@ -6,9 +6,14 @@ Dựa trên tài liệu SRS (*Software Requirement Specification*) của website
 giày trực tuyến, báo cáo này liệt kê các module cần thiết để phát triển
 backend (BE) sử dụng framework NestJS.
 Các module được thiết kế để đáp ứng các yêu cầu chức năng (Functional
-Requirements - FR) và hỗ trợ hệ thống vận hành hiệu quả.
+Requirements - FR) và hỗ t- **Module Thanh Toán (Checkout Module)**:
+** Phụ thuộc vào **Order Module** để lấy thông tin đơn hàng cần thanh toán
+   (FR-014).
+** Gọi **Stripe Payment Gateway Module** để xử lý thanh toán trực tuyến an toàn.
+** Nhận cập nhật từ **Webhook Handler Module** về trạng thái thanh toán.
+** Sử dụng **Database Module** để lưu trữ dữ liệu giao dịch.hống vận hành hiệu quả.
 
-== Các Featured Module Cần Thiết
+== Các Bussiness Module Cần Thiết
 
 === Module Người Dùng (User Module)
 Chức năng chính::
@@ -17,11 +22,13 @@ Chức năng chính::
 - Quản lý tài khoản người dùng (FR-026, FR-027)
 - Phân quyền người dùng (FR-027)
 API::
-- `POST /users/register` - Đăng ký người dùng
-- `POST /users/login` - Đăng nhập
 - `GET /users/:id` - Lấy thông tin người dùng
 - `PUT /users/:id` - Cập nhật thông tin người dùng
 - `POST /users/roles` - Phân quyền người dùng
+- `GET /users` - Lấy danh sách người dùng (cho admin)
+- `DELETE /users/:id` - Xóa người dùng
+- `POST /users/password/reset` - Yêu cầu đặt lại mật khẩu
+- `PUT /users/password` - Cập nhật mật khẩu
 
 === Module Sản Phẩm (Product Module)
 Chức năng chính::
@@ -35,19 +42,25 @@ API::
 - `PUT /products/:id` - Sửa sản phẩm
 - `DELETE /products/:id` - Xóa sản phẩm
 - `GET /products` - Lấy danh sách sản phẩm
+- `GET /products/:id` - Lấy chi tiết sản phẩm
 - `GET /products/search` - Tìm kiếm sản phẩm
 - `GET /products/filter` - Lọc sản phẩm
 - `POST /products/:id/reviews` - Đánh giá sản phẩm
+- `GET /products/:id/reviews` - Lấy đánh giá của sản phẩm
+- `GET /products/categories` - Lấy danh sách danh mục sản phẩm
+- `POST /products/categories` - Thêm danh mục sản phẩm
+- `PUT /products/categories/:id` - Cập nhật danh mục sản phẩm
+- `DELETE /products/categories/:id` - Xóa danh mục sản phẩm
 
 === Module Giỏ Hàng (Cart Module)
 Chức năng chính::
-- Thêm/xóa sản phẩm vào giỏ hàng (FR-008)
-- Mua hàng từ giỏ hàng (FR-021)
+- Thêm/xóa sản phẩm trong giỏ hàng (FR-008)
 API::
 - `POST /cart` - Thêm sản phẩm vào giỏ hàng
 - `DELETE /cart/:itemId` - Xóa sản phẩm khỏi giỏ hàng
+- `PUT /cart/:itemId` - Cập nhật số lượng sản phẩm trong giỏ hàng
 - `GET /cart` - Lấy thông tin giỏ hàng
-- `POST /cart/checkout` - Mua hàng từ giỏ hàng
+- `DELETE /cart` - Xóa toàn bộ giỏ hàng
 
 === Module Đơn Hàng (Order Module)
 Chức năng chính::
@@ -58,12 +71,18 @@ Chức năng chính::
 API::
 - `POST /orders` - Tạo đơn hàng
 - `GET /orders/:id` - Lấy thông tin đơn hàng
+- `GET /orders` - Lấy danh sách đơn hàng của người dùng
 - `PUT /orders/:id/status` - Cập nhật trạng thái đơn hàng
 - `PUT /orders/:id/confirm-delivery` - Xác nhận giao hàng
+- `PUT /orders/:id` - Cập nhật thông tin đơn hàng
+- `DELETE /orders/:id` - Hủy đơn hàng
+- `GET /orders/history` - Xem lịch sử đơn hàng
 
 === Module Thanh Toán (Checkout Module)
 Chức năng chính::
 - Thanh toán trực tuyến (FR-014)
+- Tích hợp với Stripe để xử lý thanh toán an toàn
+- Lưu trữ và quản lý thông tin giao dịch
 API::
 - `POST /checkout` - Tạo thanh toán
 - `POST /checkout/confirm` - Xác nhận thanh toán
@@ -72,6 +91,9 @@ API::
 - `POST /checkout/callback` - Nhận callback từ dịch vụ thanh toán
 - `GET /checkout/history` - Lấy lịch sử thanh toán
 - `GET /checkout/invoice/:id` - Lấy hóa đơn thanh toán
+- `GET /checkout/methods` - Lấy danh sách phương thức thanh toán
+- `POST /checkout/verify` - Xác minh thông tin thanh toán trước khi hoàn tất
+- `GET /checkout/:id` - Lấy thông tin chi tiết một giao dịch thanh toán
 
 === Module Khuyến Mãi (Promotion Module)
 Chức năng chính::
@@ -82,6 +104,9 @@ API::
 - `POST /promotions` - Tạo khuyến mãi
 - `PUT /promotions/:id` - Sửa khuyến mãi
 - `DELETE /promotions/:id` - Xóa khuyến mãi
+- `GET /promotions` - Lấy danh sách khuyến mãi
+- `GET /promotions/:id` - Lấy chi tiết khuyến mãi
+- `GET /promotions/active` - Lấy danh sách khuyến mãi đang hoạt động
 
 === Module Thông Báo (Notification Module)
 Chức năng chính::
@@ -90,6 +115,12 @@ Chức năng chính::
 API::
 - `POST /notifications` - Gửi thông báo
 - `GET /notifications` - Lấy danh sách thông báo
+- `GET /notifications/:id` - Xem chi tiết thông báo
+- `PUT /notifications/:id/read` - Đánh dấu thông báo đã đọc
+- `PUT /notifications/read-all` - Đánh dấu tất cả thông báo đã đọc
+- `DELETE /notifications/:id` - Xóa thông báo
+- `GET /notifications/settings` - Lấy cài đặt thông báo
+- `PUT /notifications/settings` - Cập nhật cài đặt thông báo
 
 === Module Wishlist (Wishlist Module)
 Chức năng chính::
@@ -99,15 +130,21 @@ API::
 - `POST /wishlist` - Thêm vào wishlist
 - `DELETE /wishlist/:itemId` - Xóa khỏi wishlist
 - `GET /wishlist` - Lấy danh sách wishlist
+- `POST /wishlist/move-to-cart/:itemId` - Di chuyển sản phẩm từ wishlist vào giỏ hàng
 
-=== Module Phản Hồi (Feedback Module)
-Chức năng chính::
-- Phản hồi khách hàng (FR-034)
-- Nhắn tin với quản trị viên (FR-018)
-API::
-- `POST /feedback` - Gửi phản hồi
-- `GET /feedback` - Lấy danh sách phản hồi
-- `POST /messages` - Nhắn tin với quản trị viên
+// === Module Phản Hồi (Feedback Module)
+// Chức năng chính::
+// - Phản hồi khách hàng (FR-034)
+// - Nhắn tin với quản trị viên (FR-018)
+// API::
+// - `POST /feedback` - Gửi phản hồi
+// - `GET /feedback` - Lấy danh sách phản hồi
+// - `GET /feedback/:id` - Xem chi tiết phản hồi
+// - `PUT /feedback/:id` - Cập nhật phản hồi
+// - `DELETE /feedback/:id` - Xóa phản hồi
+// - `POST /messages` - Nhắn tin với quản trị viên
+// - `GET /messages/:conversationId` - Lấy tin nhắn của cuộc trò chuyện
+// - `GET /messages` - Lấy danh sách cuộc trò chuyện
 
 === Module Thống Kê (Analytics Module)
 Chức năng chính::
@@ -117,6 +154,12 @@ Chức năng chính::
 - Dashboard theo dõi khuyến mãi (FR-033)
 API::
 - `GET /analytics` - Lấy dữ liệu thống kê
+- `GET /analytics/products` - Thống kê theo sản phẩm
+- `GET /analytics/categories` - Thống kê theo danh mục
+- `GET /analytics/revenue` - Thống kê doanh thu
+- `GET /analytics/customers` - Thống kê khách hàng
+- `GET /analytics/promotions` - Thống kê hiệu quả khuyến mãi
+- `GET /analytics/dashboard` - Dữ liệu tổng quan cho dashboard
 
 === Module Quản Lý Collection (Collection Module)
 Chức năng chính::
@@ -128,24 +171,73 @@ API::
 - `PUT /collections/:id` - Cập nhật collection
 - `DELETE /collections/:id` - Xóa collection
 - `GET /collections` - Lấy danh sách collection
+- `GET /collections/:id` - Lấy chi tiết collection
 - `POST /collections/:id/products` - Thêm sản phẩm vào collection
+- `GET /collections/:id/products` - Lấy danh sách sản phẩm trong collection
+- `DELETE /collections/:id/products/:productId` - Xóa sản phẩm khỏi collection
 
-=== Module Xác Thực (Auth Module)
+=== Module Xác Thực (Auth Module với Clerk)
 Chức năng chính::
-- Xác thực người dùng (FR-001, FR-002)
+- Xác thực người dùng thông qua Clerk (FR-001, FR-002)
+- Hỗ trợ nhiều phương thức xác thực: email/password, social login (Google, Facebook), magic links
+- Quản lý phiên đăng nhập an toàn với JWT
+- Bảo mật hai lớp (2FA)
+- Xác thực không cần mật khẩu (passwordless authentication)
+- Đồng bộ dữ liệu người dùng từ Clerk với cơ sở dữ liệu ứng dụng
+- Kiểm soát trạng thái đăng nhập và phiên làm việc
+- Xác minh email và số điện thoại người dùng
 API::
-- `POST /auth/login` - Đăng nhập
-- `POST /auth/register` - Đăng ký
+- `GET /auth/callback` - Callback URL cho OAuth providers
+- `GET /auth/me` - Lấy thông tin người dùng hiện tại
+- `POST /auth/sign-out` - Đăng xuất
+- `GET /auth/session` - Kiểm tra phiên hiện tại
 - `POST /auth/refresh-token` - Làm mới token
+- `POST /auth/webhook` - Xử lý webhook từ Clerk
+- `GET /auth/jwt` - Lấy JWT token cho client
 
-=== Module Tích Hợp Shipper (Shipper Integration Module) *[MỚI]*
+==== Chi tiết tích hợp Clerk
+
+Clerk là một giải pháp xác thực (authentication) và quản lý người dùng toàn diện được triển khai theo mô hình SaaS (Software as a Service). Hệ thống sử dụng Clerk để:
+
+1. **Đăng nhập và đăng ký:**
+   * Thay thế hoàn toàn cho `/auth/login` và `/auth/register` truyền thống
+   * Đăng nhập bằng email/mật khẩu
+   * Đăng nhập bằng mạng xã hội (Google, GitHub, Facebook...)
+   * Magic links (đăng nhập qua email không cần mật khẩu)
+   * Đăng nhập bằng số điện thoại (SMS OTP)
+
+2. **Quản lý hồ sơ người dùng:**
+   * Lưu trữ thông tin cá nhân an toàn
+   * Xác minh email và số điện thoại
+   * Avatar và thông tin hiển thị
+
+3. **Bảo mật nâng cao:**
+   * Xác thực hai yếu tố (2FA)
+   * Phát hiện thiết bị đáng ngờ
+   * Phân tích rủi ro dựa trên hành vi đăng nhập
+   * Thay thế hoàn toàn cho các chức năng quên/đặt lại mật khẩu
+
+4. **Quản lý phiên đăng nhập:**
+   * JWT được ký bởi Clerk
+   * Theo dõi phiên đang hoạt động
+   * Hủy phiên từ xa
+   * Làm mới token tự động
+
+5. **Tích hợp hệ thống:**
+   * Webhook cho các sự kiện người dùng
+   * API để đồng bộ hóa dữ liệu người dùng
+   * Tùy chỉnh luồng đăng ký/đăng nhập
+
+Với việc tích hợp Clerk, hệ thống không cần phải lo lắng về các vấn đề phức tạp như lưu trữ mật khẩu an toàn, quản lý token, phục hồi mật khẩu, phòng chống tấn công brute force, v.v.
+
+=== Module Tích Hợp Shipper (Shipper Integration Module) 
 Chức năng chính::
 - Tích hợp API với đơn vị vận chuyển (FR-022)
 - Xử lý webhook cập nhật trạng thái giao hàng
 API::
-- `POST /shipper/update-status` - Cập nhật trạng thái từ shipper
 - `GET /shipper/tracking` - Lấy thông tin theo dõi đơn hàng
-- `POST /webhooks/shipper` - Xử lý webhook từ shipper
+- `GET /shipper/orders` - Lấy danh sách đơn hàng cần giao (cho shipper)
+- `PUT /shipper/orders/:id/status` - Cập nhật trạng thái đơn hàng (cho shipper)
 
 
 == Các Infrastructure Modules Cần Thiết
@@ -159,6 +251,15 @@ API::
 - `POST /rbac/roles` - Tạo role mới
 - `POST /rbac/assign-role` - Gán role cho người dùng
 - `GET /rbac/permissions` - Lấy danh sách quyền theo role
+- `GET /rbac/roles` - Lấy danh sách role
+- `GET /rbac/roles/:id` - Lấy chi tiết role
+- `PUT /rbac/roles/:id` - Cập nhật role
+- `DELETE /rbac/roles/:id` - Xóa role
+- `POST /rbac/permissions` - Tạo quyền mới
+- `GET /rbac/permissions/:id` - Lấy chi tiết quyền
+- `PUT /rbac/permissions/:id` - Cập nhật quyền
+- `DELETE /rbac/permissions/:id` - Xóa quyền
+- `POST /rbac/assign-permission` - Gán quyền cho role
 
 === Module Xử Lý Lỗi Tập Trung (Global Error Handling Module) *[MỚI]*
 Chức năng chính::
@@ -175,12 +276,15 @@ Chức năng chính::
 API::
 - Không có API công khai, được sử dụng nội bộ bởi các module khác
 
-=== Module Gửi Email - Resend (Email Service Module)
+=== Module Gửi Email (Email Service Module)
 Chức năng chính::
 - Gửi email thông báo (FR-009)
-- Sử dụng dịch vụ Resend để gửi email
 API::
 - `POST /email/send` - Gửi email
+- `GET /email/templates` - Lấy danh sách mẫu email
+- `POST /email/templates` - Tạo mẫu email mới
+- `PUT /email/templates/:id` - Cập nhật mẫu email
+- `GET /email/logs` - Xem lịch sử gửi email
 
 === Module Ghi Log (Logging Module)
 Chức năng chính::
@@ -203,6 +307,9 @@ Chức năng chính::
 API::
 - `POST /files/upload` - Tải lên tệp tin
 - `GET /files/:id` - Lấy tệp tin
+- `DELETE /files/:id` - Xóa tệp tin
+- `PUT /files/:id` - Cập nhật thông tin tệp tin
+- `GET /files` - Lấy danh sách tệp tin
 
 === Module Tìm Kiếm (Search Module)
 Chức năng chính::
@@ -210,6 +317,9 @@ Chức năng chính::
 - Sử dụng Elasticsearch hoặc dịch vụ tương tự
 API::
 - `GET /search` - Tìm kiếm sản phẩm
+- `GET /search/suggestions` - Lấy gợi ý tìm kiếm
+- `GET /search/advanced` - Tìm kiếm nâng cao với nhiều tiêu chí
+- `POST /search/index` - Đánh chỉ mục cho dữ liệu mới
 
 === Module Hàng Đợi Tin Nhắn (Message Queue Module)
 Chức năng chính::
@@ -227,13 +337,33 @@ API::
 
 === Module Xử Lý Webhook (Webhook Handler Module)
 Chức năng chính::
-- Nhận và xử lý webhook từ các dịch vụ bên thứ ba (Stripe, Clerk, Resend).
+- Nhận và xử lý webhook từ các dịch vụ bên thứ ba (Stripe, Resend).
 - Xác thực chữ ký webhook để đảm bảo an toàn.
+- Chuyển tiếp sự kiện từ webhook đến các module liên quan
 API::
 - `POST /webhooks/stripe` - Xử lý webhook từ Stripe (thanh toán)
-- `POST /webhooks/clerk` - Xử lý webhook từ Clerk (xác thực người dùng)
 - `POST /webhooks/resend` - Xử lý webhook từ Resend (trạng thái email)
+- `GET /webhooks/logs` - Xem log webhook
+- `POST /webhooks/register` - Đăng ký endpoint mới cho webhook
+- `PUT /webhooks/settings` - Cấu hình xử lý webhook
 
+*Lưu ý: Webhook từ Clerk được xử lý trực tiếp bởi Auth Module qua endpoint `/auth/webhook`*
+
+=== Module Thanh Toán Stripe (Stripe Payment Gateway Module) 
+Chức năng chính::
+- Tích hợp thanh toán trực tuyến với Stripe (FR-014)
+- Xử lý giao dịch thanh toán an toàn và tuân thủ tiêu chuẩn PCI DSS
+- Hỗ trợ nhiều phương thức thanh toán: thẻ tín dụng, Apple Pay, Google Pay, chuyển khoản ngân hàng...
+- Lưu trữ thông tin thẻ thanh toán an toàn với Stripe Elements và Stripe.js
+API::
+- `POST /stripe/payment-intent` - Tạo intent thanh toán
+- `POST /stripe/confirm-payment` - Xác nhận thanh toán
+- `POST /stripe/payment-methods` - Thêm phương thức thanh toán mới
+- `DELETE /stripe/payment-methods/:id` - Xóa phương thức thanh toán
+- `GET /stripe/transaction/:id` - Xem thông tin giao dịch
+- `POST /stripe/setup-intent` - Tạo intent lưu thông tin thẻ
+- `GET /stripe/payment-status/:id` - Kiểm tra trạng thái thanh toán
+- `POST /stripe/customer` - Tạo hoặc cập nhật thông tin khách hàng trên Stripe
 
 == Liên Kết Giữa Các Module
 
@@ -242,8 +372,8 @@ các yêu cầu chức năng.
 Dưới đây là mô tả các liên kết chính giữa các module:
 
 - **Module Người Dùng (User Module)**:
-** Phụ thuộc vào **Auth Module** để xác thực đăng ký/đăng nhập (`POST
-   /auth/login`, `POST /auth/register`).
+** Phụ thuộc vào **Auth Module với Clerk** để xác thực đăng ký/đăng nhập thông qua 
+   các phương thức xác thực đa dạng của Clerk.
 ** Cung cấp thông tin người dùng cho **Order Module**, **Wishlist Module**,
    và **Feedback Module** để liên kết đơn hàng, wishlist, và phản hồi với
    tài khoản người dùng.
@@ -335,11 +465,13 @@ Dưới đây là mô tả các liên kết chính giữa các module:
    dashboard (FR-033).
 ** Sử dụng **Database Module** để truy xuất dữ liệu phân tích.
 
-- **Module Xác Thực (Auth Module)**:
-** Cung cấp dịch vụ xác thực cho **User Module** để xử lý đăng ký/đăng nhập
+- **Module Xác Thực (Auth Module với Clerk)**:
+** Cung cấp dịch vụ xác thực cho **User Module** thông qua nền tảng Clerk
    (FR-001, FR-002).
-** Liên kết với **API Gateway Module** để bảo vệ API bằng token xác thực.
-** Sử dụng **Database Module** để lưu trữ thông tin xác thực.
+** Liên kết với **API Gateway Module** để bảo vệ API bằng JWT token từ Clerk.
+** Nhận webhook từ Clerk về các sự kiện liên quan đến người dùng (đăng ký, đăng nhập, thay đổi thông tin).
+** Không trực tiếp lưu trữ thông tin xác thực nhạy cảm (mật khẩu) - được quản lý bởi Clerk.
+** Sử dụng **Database Module** để đồng bộ dữ liệu người dùng từ Clerk.
 
 - **Module Quản lý Collection (Collection Module)**:
 ** Liên kết với **Product Module** để gán sản phẩm vào collection (FR-006,
@@ -354,11 +486,14 @@ Dưới đây là mô tả các liên kết chính giữa các module:
 ** Cung cấp lưu trữ và truy xuất dữ liệu cho tất cả các module chính và một
    số module cơ sở hạ tầng.
 
-- **Module Thanh Toán (Payment Gateway Module)**:
+- **Module Thanh Toán Stripe (Stripe Payment Gateway Module)**:
 ** Được gọi bởi **Payment Module** để gửi yêu cầu thanh toán đến
-   Stripe/VNPay (FR-014).
+   Stripe (FR-014).
+** Tương tác với API của Stripe để xử lý thanh toán an toàn.
+** Sử dụng Stripe Elements và Stripe.js để thu thập thông tin thẻ từ người dùng mà không lưu trữ dữ liệu nhạy cảm.
 ** Gửi cập nhật trạng thái thanh toán đến **Webhook Handler Module**.
-** Sử dụng **Database Module** để lưu trữ dữ liệu giao dịch.
+** Sử dụng **Database Module** để lưu trữ thông tin giao dịch (không bao gồm dữ liệu thẻ thanh toán).
+** Hỗ trợ các chức năng hoàn tiền và xử lý tranh chấp từ người dùng.
 
 - **Module Gửi Email (Email Service Module)**:
 ** Được gọi bởi **Notification Module** để gửi email thông báo (FR-009).
